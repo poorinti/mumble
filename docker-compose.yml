@@ -27,6 +27,7 @@ services:
       RECORDS_DIR: /app/static/records
       LEGACY_DB_FILE: /app/tactical.db
       SERVERS_FILE: /app/servers.json
+      REDIS_URL: redis://:${REDIS_PASSWORD:-roip-redis-change-me}@redis:6379/0
     expose:
       - "5000"
     volumes:
@@ -36,6 +37,8 @@ services:
       - ./.secret_key:/app/.secret_key
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       control-service:
         condition: service_healthy
@@ -94,6 +97,24 @@ services:
       start_period: 20s
     mem_limit: 1g
     cpus: 1.0
+    networks:
+      - roip-net
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: roip-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-roip-redis-change-me}"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a ${REDIS_PASSWORD:-roip-redis-change-me} ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    mem_limit: 256m
+    cpus: 0.5
     networks:
       - roip-net
 
@@ -187,6 +208,7 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:
   mumble-data1:
   mumble-data2:
   mumble-data3:

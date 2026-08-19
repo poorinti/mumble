@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, request, send_file, session
+from flask_socketio import SocketIO, emit
 from markupsafe import escape
 import json, os, subprocess, sys, atexit, re, sqlite3, io, threading, time, random, string, base64, tempfile
 import pandas as pd
@@ -99,6 +100,7 @@ def require_auth():
 def add_charset(response):
     if response.content_type.startswith('text/html'):
         response.content_type = 'text/html; charset=utf-8'
+    _audit_completed_command(response)
     return response
 
 DATA_FILE = 'servers.json'
@@ -123,10 +125,17 @@ def init_db():
 init_db()
 
 from roip_search import register_chat_search
-from roip_search.db import database_health, ingest_chat_message, sync_stations
+from roip_search.db import audit_event, database_health, get_pool, ingest_chat_message, sync_stations
+from roip_operations import OperationalWorker, build_daily_report, report_csv
 
 register_chat_search(app)
 initialize_auth_tables()
+socketio = SocketIO(
+    app,
+    async_mode='threading',
+    cors_allowed_origins=None,
+    message_queue=os.getenv('REDIS_URL', 'redis://redis:6379/0'),
+)
 
 @app.route('/healthz')
 def healthz():
@@ -159,6 +168,15 @@ def monitor_users_silent():
                         for name in left:
                             _log_db(s['id'], f"🔴 [{name}] ออกจากเซิร์ฟเวอร์")
                     server_user_snapshots[sid] = current
+                    try:
+                        socketio.emit('station:presence', {
+                            'station_id': s['id'],
+                            'users': len(status.get('users', [])),
+                            'channels': len(status.get('channels', [])),
+                            'at': datetime.now(timezone.utc).isoformat(),
+                        })
+                    except Exception:
+                        pass
                 except: pass
         except: pass
         time.sleep(15)
@@ -192,13 +210,97 @@ def get_user_color(username):
     return colors[sum(ord(c) for c in username) % len(colors)]
 
 def _ice_port(server): return server.get('ice_port', 6502)
-def _ice_secret(server): return server.get('ice_secret', 'tactical1234')
+def _ice_secret(server):
+    # A station can override this when it is managed externally. Docker stations
+    # inherit the single deployment secret, so rotating .env does not desync Ice.
+    return server.get('ice_secret') or os.getenv('MUMBLE_ICE_SECRET', 'tactical1234')
 
 def _log_db(server_id, message):
     conn = sqlite3.connect(DB_FILE)
     conn.execute("INSERT INTO logs (server_id, time, message) VALUES (?, ?, ?)",
                  (server_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message))
     conn.commit(); conn.close()
+
+
+_AUDIT_ACTIONS = {
+    'api_kick': 'server.user.kick',
+    'api_ban': 'server.user.ban',
+    'api_unban': 'server.user.unban',
+    'api_set_password': 'server.password.change',
+    'api_delete_channel': 'server.channel.delete',
+    'api_create_channel': 'server.channel.create',
+    'api_channel_password': 'server.channel.password.change',
+    'api_restart': 'server.restart',
+    'api_mute': 'server.user.mute',
+    'api_deaf': 'server.user.deaf',
+    'api_move_user': 'server.user.move',
+    'api_rename_channel': 'server.channel.rename',
+    'api_rename_user': 'server.user.rename',
+    'api_register_user': 'server.account.register',
+    'api_unregister_user': 'server.account.delete',
+    'api_broadcast': 'server.message.broadcast',
+    'api_tts_broadcast': 'server.tts.broadcast',
+}
+
+
+def _audit_completed_command(response):
+    """Record successful operational commands without ever retaining secret request fields."""
+    if response.status_code >= 400 or request.method not in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+        return
+    action = _AUDIT_ACTIONS.get(request.endpoint or '')
+    if not action:
+        return
+    values = request.view_args or {}
+    station_id = values.get('server_id')
+    target_id = values.get('channel_id') or values.get('session') or values.get('user_id') or station_id
+    details = {
+        'method': request.method,
+        'path': request.path,
+        'station_id': station_id,
+        'role': session.get('role'),
+    }
+    audit_event(
+        str(session.get('operator_id') or session.get('username') or 'system'),
+        action,
+        'mumble_command',
+        target_id,
+        request.remote_addr,
+        details,
+    )
+    try:
+        socketio.emit('command:completed', {'action': action, **details, 'at': datetime.now(timezone.utc).isoformat()})
+    except Exception:
+        pass
+
+
+def _probe_station_for_operations(server):
+    status = get_server_status(server['ip'], _ice_port(server), _ice_secret(server))
+    return {
+        'online': bool(status.get('online')) and not bool(status.get('error')),
+        'detail': {
+            'users': len(status.get('users') or []),
+            'channels': len(status.get('channels') or []),
+            'error': str(status.get('error') or '')[:300],
+        },
+    }
+
+
+def _emit_operations_event(name, payload):
+    try:
+        socketio.emit(name, payload)
+    except Exception:
+        pass
+
+
+operations = OperationalWorker(load_servers, _probe_station_for_operations, _emit_operations_event, _log_db)
+operations.start()
+
+
+@socketio.on('connect')
+def socket_connect():
+    if not session.get('logged_in'):
+        return False
+    emit('health:snapshot', operations.health_snapshot())
 
 @app.route('/')
 @app.route('/legacy')
@@ -310,12 +412,31 @@ def api_save_log(server_id):
 
 @app.route('/api/logs/<int:server_id>', methods=['GET'])
 def api_get_logs(server_id):
+    try:
+        limit = max(10, min(200, int(request.args.get('limit', '80'))))
+        cursor = int(request.args.get('cursor', '0') or 0)
+    except ValueError:
+        return jsonify({"status": "failed", "error": "รูปแบบหน้า Log ไม่ถูกต้อง"}), 400
     conn = sqlite3.connect(DB_FILE)
     cur = conn.cursor()
-    cur.execute("SELECT time, message FROM logs WHERE server_id=? ORDER BY id DESC LIMIT 50", (server_id,))
+    query = "SELECT id, time, message FROM logs WHERE server_id=?"
+    params = [server_id]
+    if cursor:
+        query += " AND id < ?"
+        params.append(cursor)
+    query += " ORDER BY id DESC LIMIT ?"
+    params.append(limit + 1)
+    cur.execute(query, params)
     rows = cur.fetchall()
     conn.close()
-    return jsonify([{"time": r[0], "message": r[1]} for r in rows[::-1]]) 
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    next_cursor = rows[-1][0] if has_more and rows else None
+    return jsonify({
+        "items": [{"id": r[0], "time": r[1], "message": r[2]} for r in rows],
+        "next_cursor": next_cursor,
+        "has_more": has_more,
+    })
 
 @app.route('/api/export/<doc_type>/<int:server_id>')
 def export_excel(doc_type, server_id):
@@ -368,6 +489,94 @@ def api_stats():
         "total_users": total_users, "total_channels": total_channels,
         "active_bots": active_bots
     })
+
+
+def _require_operations_admin():
+    if session.get('role') != 'admin':
+        return jsonify({"status": "failed", "error": "Health, Audit และรายงานเป็นข้อมูลสำหรับ Admin"}), 403
+    return None
+
+
+@app.route('/api/operations/health')
+def api_operations_health():
+    denied = _require_operations_admin()
+    if denied:
+        return denied
+    return jsonify(operations.health_snapshot())
+
+
+@app.route('/api/operations/audit')
+def api_operations_audit():
+    denied = _require_operations_admin()
+    if denied:
+        return denied
+    try:
+        limit = max(20, min(200, int(request.args.get('limit', '80'))))
+        cursor = int(request.args.get('cursor', '0') or 0)
+    except ValueError:
+        return jsonify({"status": "failed", "error": "รูปแบบหน้า Audit ไม่ถูกต้อง"}), 400
+    term = (request.args.get('q') or '').strip()[:120]
+    with get_pool().connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, actor_id, action, target_type, target_id, occurred_at, ip, details
+            FROM audit_events
+            WHERE (%s::bigint = 0 OR id < %s::bigint)
+              AND (%s = '' OR action ILIKE %s OR actor_id ILIKE %s OR COALESCE(target_id, '') ILIKE %s)
+            ORDER BY id DESC LIMIT %s
+            """,
+            (cursor, cursor, term, f'%{term}%', f'%{term}%', f'%{term}%', limit + 1),
+        ).fetchall()
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    return jsonify({
+        "items": [{
+            "id": row['id'], "actor": row['actor_id'], "action": row['action'],
+            "target_type": row['target_type'], "target_id": row['target_id'],
+            "occurred_at": row['occurred_at'].isoformat(), "ip": str(row['ip'] or ''),
+            "details": row['details'] or {},
+        } for row in rows],
+        "next_cursor": rows[-1]['id'] if has_more and rows else None,
+        "has_more": has_more,
+    })
+
+
+@app.route('/api/operations/report/daily')
+def api_operations_report_daily():
+    denied = _require_operations_admin()
+    if denied:
+        return denied
+    try:
+        result = build_daily_report(request.args.get('from', ''), request.args.get('to', ''), request.args.get('station_id'))
+    except ValueError as exc:
+        return jsonify({"status": "failed", "error": str(exc)}), 400
+    audit_event(session.get('username') or 'admin', 'report.daily.view', 'daily_report', None, request.remote_addr, result)
+    return jsonify(result)
+
+
+@app.route('/api/operations/report/daily/export.csv')
+def api_operations_report_export():
+    denied = _require_operations_admin()
+    if denied:
+        return denied
+    try:
+        result = build_daily_report(request.args.get('from', ''), request.args.get('to', ''), request.args.get('station_id'))
+    except ValueError as exc:
+        return jsonify({"status": "failed", "error": str(exc)}), 400
+    audit_event(session.get('username') or 'admin', 'report.daily.export', 'daily_report', None, request.remote_addr, {"from": result['from'], "to": result['to']})
+    payload = io.BytesIO(report_csv(result))
+    return send_file(payload, mimetype='text/csv; charset=utf-8', as_attachment=True,
+                     download_name=f"ROIP_DAILY_REPORT_{result['from']}_{result['to']}.csv")
+
+
+@app.route('/api/operations/audio-retention/run', methods=['POST'])
+def api_operations_run_retention():
+    denied = _require_operations_admin()
+    if denied:
+        return denied
+    queued = operations.enqueue('cleanup_audio')
+    audit_event(session.get('username') or 'admin', 'audio.retention.request', 'audio_storage', None, request.remote_addr, {"queued": queued})
+    return jsonify({"status": "success", "queued": queued, "retention_days": int(os.getenv('AUDIO_RETENTION_DAYS', '30'))})
 
 @app.route('/api/ai/bot/start/<int:server_id>', methods=['POST'])
 def api_start_bot(server_id):
@@ -1175,5 +1384,4 @@ def auto_start_bots_on_boot():
 threading.Timer(3.0, auto_start_bots_on_boot).start()
 
 if __name__ == '__main__':
-    # ✨ เพิ่ม ssl_context='adhoc' เข้าไป เพื่อสร้าง HTTPS จำลอง
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=False, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)

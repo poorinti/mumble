@@ -12,10 +12,12 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && pip install --no-cache-dir zeroc-ice==3.7.11 \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir zeroc-ice==3.7.11
+
+# Keep Ice in its own layer: it is expensive to compile but changes rarely.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 RUN mkdir -p /app/static/records

@@ -537,6 +537,17 @@
             border-color: var(--b1);
         }
 
+        .operations-grid { display:grid; grid-template-columns:repeat(4, minmax(130px, 1fr)); gap:10px; margin-bottom:14px; }
+        .operations-card { background:var(--bg-row); border:1px solid var(--b1); border-radius:7px; padding:10px; }
+        .operations-card small { display:block; color:var(--text-muted); margin-bottom:4px; }
+        .operations-card strong { color:var(--txt-hi); font-family:var(--mono); font-size:1.05em; }
+        .health-station { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--b1); gap:12px; }
+        .audit-row { display:grid; grid-template-columns:145px 110px minmax(160px, 1fr) 90px; gap:10px; padding:8px 0; border-bottom:1px solid var(--b1); font-family:var(--mono); font-size:.82em; }
+        .report-table { width:100%; border-collapse:collapse; font-family:var(--mono); }
+        .report-table th, .report-table td { padding:8px; text-align:right; border-bottom:1px solid var(--b1); }
+        .report-table th:first-child, .report-table td:first-child { text-align:left; }
+        @media (max-width: 760px) { .operations-grid { grid-template-columns:repeat(2, minmax(120px, 1fr)); } .audit-row { grid-template-columns:1fr 1fr; } }
+
         audio {
             height: 30px;
             border-radius: 4px;
@@ -1314,6 +1325,7 @@
                 <button class="btn btn-dark" id="node-manage-btn"
                     onclick="document.getElementById('node-modal').style.display='flex'; loadNodes();">⚙️
                     จัดการสถานี</button>
+                <button class="btn btn-dark admin-only-control" id="operations-btn" onclick="openOperationsDashboard()">🩺 Health</button>
                 <button class="btn btn-danger"
                     onclick="sysConfirm('คุณต้องการออกจากระบบใช่หรือไม่?', logout, true)">ออกจากระบบ</button>
                 <button class="help-button" type="button" onclick="openHelp()" title="เปิดคู่มือและคำอธิบายสิทธิ์ผู้ใช้"
@@ -1385,6 +1397,9 @@
                             onclick="toggleDropdown('menu-logs')">⋮</button>
                     </div>
                     <div id="menu-logs" class="dropdown-content">
+                        <button class="admin-only-control" onclick="openOperationsDashboard('health')">🩺 Health Dashboard</button>
+                        <button class="admin-only-control" onclick="openOperationsDashboard('audit')">🛡️ Audit Log</button>
+                        <button class="admin-only-control" onclick="openOperationsDashboard('report')">📈 รายงานรายวัน</button>
                         <button onclick="openExportModal('logs')">📊 ส่งออกไฟล์ Excel (Logs ทั้งหมด)</button>
                         <button onclick="openExportModal('user_logs')">📊 ส่งออกไฟล์ Excel (เฉพาะคนเข้า-ออก)</button>
                         <button onclick="toggleDropdown('menu-logs')"
@@ -1808,6 +1823,46 @@
         </div>
     </div>
 
+    <div id="operations-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="operations-title">
+        <div class="modal-content" style="width:min(980px, 94vw); max-height:88vh; padding:0; display:flex; flex-direction:column;">
+            <div class="panel-header" style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+                <span id="operations-title">🩺 ศูนย์สุขภาพและรายงานระบบ</span>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                    <button class="btn btn-dark btn-sm" onclick="loadOperationsHealth()">Health</button>
+                    <button class="btn btn-dark btn-sm" onclick="loadAuditLog(true)">Audit</button>
+                    <button class="btn btn-dark btn-sm" onclick="loadDailyReport()">รายงาน</button>
+                    <button class="btn btn-danger btn-sm" onclick="document.getElementById('operations-modal').style.display='none'">ปิด</button>
+                </div>
+            </div>
+            <div class="panel-content" style="overflow:auto;">
+                <section id="operations-health-section">
+                    <div class="operations-grid" id="health-cards"><div class="operations-card">กำลังโหลดข้อมูลสุขภาพ...</div></div>
+                    <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin:10px 0 4px; flex-wrap:wrap;">
+                        <strong>สถานีทั้งหมด</strong>
+                        <button class="btn btn-warning btn-sm" onclick="runAudioRetention()">🧹 ตรวจและล้างไฟล์เสียงตามอายุ</button>
+                    </div>
+                    <div id="health-stations"></div>
+                </section>
+                <section id="operations-audit-section" style="display:none;">
+                    <div style="display:flex; gap:8px; margin-bottom:10px;"><input id="audit-query" placeholder="ค้นหา action, ผู้สั่ง หรือเป้าหมาย" style="flex:1;" onkeypress="if(event.key==='Enter') loadAuditLog(true)"><button class="btn btn-primary btn-sm" onclick="loadAuditLog(true)">ค้นหา</button></div>
+                    <div id="audit-list" style="max-height:54vh; overflow:auto;"></div>
+                    <button id="audit-more" class="btn btn-dark btn-sm" style="margin-top:10px; display:none;" onclick="loadAuditLog(false)">โหลด Audit เพิ่ม</button>
+                </section>
+                <section id="operations-report-section" style="display:none;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:end; margin-bottom:14px;">
+                        <label>ตั้งแต่<br><input type="date" id="report-from"></label>
+                        <label>ถึง<br><input type="date" id="report-to"></label>
+                        <label>สถานี<br><select id="report-station"><option value="">ทุกสถานี</option></select></label>
+                        <button class="btn btn-primary btn-sm" onclick="loadDailyReport()">สรุปรายงาน</button>
+                        <button class="btn btn-dark btn-sm" onclick="exportDailyReport()">⬇ Export CSV</button>
+                    </div>
+                    <div class="operations-grid" id="report-totals"></div>
+                    <div style="overflow:auto;"><table class="report-table"><thead><tr><th>วันที่</th><th>ข้อความ</th><th>เสียง</th><th>ไฟล์เสียง</th><th>เหตุการณ์</th></tr></thead><tbody id="report-rows"></tbody></table></div>
+                </section>
+            </div>
+        </div>
+    </div>
+
     <div id="rename-user-modal" class="modal-overlay">
         <div class="modal-content" style="width: 400px; padding: 0;">
             <div class="panel-header"><span>✏️ เปลี่ยนชื่อผู้ใช้</span></div>
@@ -1939,6 +1994,7 @@
         </div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         let currentId = null;
         let draggedSession = null;
@@ -2035,6 +2091,106 @@
             document.querySelectorAll('.admin-room-control').forEach(el => { el.style.display = admin ? '' : 'none'; });
             document.querySelectorAll('.admin-only-control').forEach(el => { el.style.display = admin ? '' : 'none'; });
         }
+
+        let auditCursor = null, auditRows = [];
+        function showOperationsSection(section) {
+            ['health', 'audit', 'report'].forEach(name => {
+                const el = document.getElementById(`operations-${name}-section`);
+                if (el) el.style.display = name === section ? '' : 'none';
+            });
+        }
+        function openOperationsDashboard(section = 'health') {
+            if (!isAdmin()) return sysAlert('Health, Audit และรายงานเป็นข้อมูลสำหรับ Admin');
+            document.getElementById('operations-modal').style.display = 'flex';
+            showOperationsSection(section);
+            if (section === 'audit') loadAuditLog(true);
+            else if (section === 'report') loadDailyReport();
+            else loadOperationsHealth();
+        }
+        function bytesLabel(bytes) {
+            const units = ['B', 'KB', 'MB', 'GB', 'TB']; let value = Number(bytes || 0), index = 0;
+            while (value >= 1024 && index < units.length - 1) { value /= 1024; index++; }
+            return `${value.toFixed(index ? 1 : 0)} ${units[index]}`;
+        }
+        async function loadOperationsHealth() {
+            if (!isAdmin()) return;
+            showOperationsSection('health');
+            const cards = document.getElementById('health-cards');
+            cards.innerHTML = '<div class="operations-card">กำลังตรวจสุขภาพระบบ...</div>';
+            try {
+                const res = await fetch('/api/operations/health'); const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
+                cards.innerHTML = [
+                    ['CPU', `${data.cpu.percent}% · ${data.cpu.cores} cores`],
+                    ['RAM', `${data.memory.percent}% / ${bytesLabel(data.memory.total_bytes)}`],
+                    ['Disk', `${data.disk.percent}% · เหลือ ${bytesLabel(data.disk.free_bytes)}`],
+                    ['Database / Redis', `${data.database.online ? 'ONLINE' : 'OFFLINE'} / ${data.redis.online ? 'ONLINE' : 'OFFLINE'}`],
+                    ['ไฟล์เสียง', `${data.audio_storage.files} ไฟล์ · ${bytesLabel(data.audio_storage.bytes)}`],
+                    ['Retention', `${data.audio_storage.retention_days} วัน`],
+                    ['สถานี Online', `${data.station_summary.online}/${data.station_summary.total}`],
+                    ['สถานี Offline', `${data.station_summary.offline}`],
+                ].map(([label, value]) => `<div class="operations-card"><small>${label}</small><strong>${escapeHtml(value)}</strong></div>`).join('');
+                const stationBox = document.getElementById('health-stations');
+                stationBox.innerHTML = (data.stations || []).map(station => `<div class="health-station"><div><span class="status-dot ${station.online ? '' : 'dot-red'}"></span> <strong>${escapeHtml(station.name)}</strong><small style="color:var(--text-muted); margin-left:8px;">${station.detail?.users ?? 0} users · ${station.detail?.channels ?? 0} rooms</small></div><strong style="color:${station.online ? 'var(--accent-green)' : 'var(--accent-red)'}">${station.online ? 'ONLINE' : 'OFFLINE'}</strong></div>`).join('') || '<div style="color:var(--text-muted);padding:12px;">กำลังรอรอบตรวจสถานีแรก</div>';
+            } catch (error) { cards.innerHTML = `<div class="operations-card" style="color:var(--accent-red);">${escapeHtml(error.message)}</div>`; }
+        }
+        async function runAudioRetention() {
+            if (!isAdmin()) return;
+            try {
+                const response = await fetch('/api/operations/audio-retention/run', { method: 'POST' }); const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'ไม่สามารถเริ่มงานได้');
+                sysAlert(`เริ่มตรวจไฟล์เสียงแล้ว: ระบบจะลบไฟล์ที่เก่ากว่า ${data.retention_days} วัน`);
+                setTimeout(loadOperationsHealth, 600);
+            } catch (error) { sysAlert(error.message); }
+        }
+        async function loadAuditLog(reset = true) {
+            if (!isAdmin()) return;
+            showOperationsSection('audit');
+            if (reset) { auditCursor = null; auditRows = []; }
+            const box = document.getElementById('audit-list');
+            if (!auditRows.length) box.innerHTML = '<div style="color:var(--text-muted);padding:12px;">กำลังโหลด Audit Log...</div>';
+            try {
+                const q = encodeURIComponent(document.getElementById('audit-query').value || '');
+                const response = await fetch(`/api/operations/audit?limit=100&q=${q}${auditCursor ? `&cursor=${auditCursor}` : ''}`);
+                const data = await response.json(); if (!response.ok) throw new Error(data.error || 'โหลด Audit ไม่สำเร็จ');
+                auditRows = auditRows.concat(data.items || []); auditCursor = data.next_cursor || null;
+                box.innerHTML = auditRows.map(row => `<div class="audit-row"><span>${escapeHtml(new Date(row.occurred_at).toLocaleString('th-TH'))}</span><span>${escapeHtml(row.actor)}</span><strong>${escapeHtml(row.action)}</strong><span>${escapeHtml(row.target_id || '-')}</span></div>`).join('') || '<div style="color:var(--text-muted);padding:12px;">ยังไม่มี Audit Log</div>';
+                document.getElementById('audit-more').style.display = auditCursor ? 'inline-flex' : 'none';
+            } catch (error) { box.innerHTML = `<div style="color:var(--accent-red);padding:12px;">${escapeHtml(error.message)}</div>`; }
+        }
+        async function populateReportStations() {
+            const select = document.getElementById('report-station');
+            if (select.dataset.loaded) return;
+            const servers = await fetch('/api/servers').then(r => r.json());
+            select.innerHTML = '<option value="">ทุกสถานี</option>' + (servers || []).map(s => `<option value="${Number(s.id)}">${escapeHtml(s.name)}</option>`).join('');
+            select.dataset.loaded = '1';
+        }
+        function reportQuery() {
+            const params = new URLSearchParams();
+            const start = document.getElementById('report-from').value, end = document.getElementById('report-to').value, station = document.getElementById('report-station').value;
+            if (start) params.set('from', start); if (end) params.set('to', end); if (station) params.set('station_id', station);
+            return params.toString();
+        }
+        async function loadDailyReport() {
+            if (!isAdmin()) return;
+            showOperationsSection('report');
+            try {
+                await populateReportStations();
+                const response = await fetch(`/api/operations/report/daily?${reportQuery()}`); const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'โหลดรายงานไม่สำเร็จ');
+                document.getElementById('report-totals').innerHTML = [['ข้อความ', data.totals.messages], ['เสียง', data.totals.voice], ['ไฟล์เสียง', data.totals.audio], ['เหตุการณ์', data.totals.events]].map(([label, value]) => `<div class="operations-card"><small>${label}</small><strong>${value.toLocaleString()}</strong></div>`).join('');
+                document.getElementById('report-rows').innerHTML = (data.daily || []).map(row => `<tr><td>${row.date}</td><td>${row.messages}</td><td>${row.voice}</td><td>${row.audio}</td><td>${row.events}</td></tr>`).join('');
+            } catch (error) { document.getElementById('report-rows').innerHTML = `<tr><td colspan="5" style="color:var(--accent-red);">${escapeHtml(error.message)}</td></tr>`; }
+        }
+        function exportDailyReport() { window.location.href = `/api/operations/report/daily/export.csv?${reportQuery()}`; }
+        (function initializeLiveSocket() {
+            if (!window.io) return;
+            const liveSocket = window.io({ transports: ['websocket', 'polling'] });
+            liveSocket.on('command:completed', () => { refreshData(); fetchCommandLogs(true); });
+            liveSocket.on('station:presence', data => { if (Number(data.station_id) === Number(currentId)) refreshData(); });
+            liveSocket.on('station:status', () => { if (document.getElementById('operations-modal').style.display === 'flex') loadOperationsHealth(); });
+            liveSocket.on('storage:cleanup', () => { if (document.getElementById('operations-modal').style.display === 'flex') loadOperationsHealth(); });
+        })();
 
         // --- ✨ ระบบประมวลผลไมค์สด (Live Web-Mic PTT) ---
         let mediaRecorder;
@@ -2375,7 +2531,7 @@ function deleteServer(id) {
             document.getElementById('current-node-name').innerText = name;
             document.getElementById('current-node-name').style.color = 'var(--amber)';
             document.getElementById('node-modal').style.display = 'none';
-            const logBox = document.getElementById('log-box'); logBox.innerHTML = ''; logBox.dataset.lastLog = '';
+            const logBox = document.getElementById('log-box'); commandLogs = []; logNextCursor = null; logBox.innerHTML = '';
             const aiTerminal = document.getElementById('ai-terminal'); aiTerminal.innerHTML = `<div style="color: var(--border-light);">[SYSTEM] กำลังสลับไปยังสถานี ${name}...</div>`; aiTerminal.dataset.lastContent = '';
             addLog(`📡 เชื่อมต่อกับสถานี: ${name}`);
             refreshData();
@@ -2508,19 +2664,48 @@ function deleteServer(id) {
         function sendHistoryTTS(text) { document.getElementById('tts-history-modal').style.display = 'none'; document.getElementById('bc-input').value = text; ttsBroadcast(); }
         function clearTTSHistory() { sysConfirm('ต้องการล้างประวัติคำสั่งเสียง และลบไฟล์เสียงที่ค้างในระบบทั้งหมดใช่หรือไม่?', () => { localStorage.removeItem('ttsHistory'); document.getElementById('tts-history-list').innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">ไม่มีประวัติการสั่งการ</div>'; fetch('/api/tts/clear_files', { method: 'POST' }).then(r => r.json()).then(d => { sysAlert("ล้างประวัติและทำลายไฟล์เสียงเก่าเรียบร้อยแล้ว!"); addLog("🗑️ ล้างประวัติและไฟล์เสียง AI โทรโข่ง"); }); }, true); }
 
+        let commandLogs = [], logNextCursor = null, logLoading = false;
+        const LOG_ROW_HEIGHT = 30;
+        function formatLogMessage(message) {
+            return escapeHtml(message || '').replace(/\[(.*?)\]/g, '<span style="color:var(--accent-green)">[$1]</span>');
+        }
+        function renderCommandLogs() {
+            const box = document.getElementById('log-box');
+            if (!box) return;
+            const visible = Math.ceil((box.clientHeight || 360) / LOG_ROW_HEIGHT) + 8;
+            const start = Math.max(0, Math.floor(box.scrollTop / LOG_ROW_HEIGHT) - 4);
+            const end = Math.min(commandLogs.length, start + visible);
+            const rows = commandLogs.slice(start, end).map(l => `<div class="log-entry" style="height:${LOG_ROW_HEIGHT}px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><span style="color:var(--border-light);">[${escapeHtml((l.time || '').split(' ')[1] || l.time || '')}]</span> ${formatLogMessage(l.message)}</div>`).join('');
+            box.innerHTML = `<div style="height:${commandLogs.length * LOG_ROW_HEIGHT}px; position:relative;"><div style="position:absolute; left:0; right:0; transform:translateY(${start * LOG_ROW_HEIGHT}px)">${rows}</div></div>`;
+        }
+        async function fetchCommandLogs(reset = true) {
+            if (!currentId || logLoading) return;
+            logLoading = true;
+            try {
+                const cursor = reset ? '' : logNextCursor;
+                if (!reset && !cursor) return;
+                const response = await fetch(`/api/logs/${currentId}?limit=100${cursor ? `&cursor=${cursor}` : ''}`);
+                const data = await response.json();
+                const items = data.items || [];
+                commandLogs = reset ? items : commandLogs.concat(items);
+                logNextCursor = data.next_cursor || null;
+                renderCommandLogs();
+            } catch (_) { }
+            finally { logLoading = false; }
+        }
         function addLog(m, saveDb = true) {
-            const box = document.getElementById('log-box'); let uiMsg = m.replace(/\[(.*?)\]/g, '<span style="color:var(--accent-green)">[$1]</span>');
-            box.innerHTML = `<div class="log-entry" style="margin-bottom: 5px;"><span style="color:var(--border-light);">[${new Date().toLocaleTimeString()}]</span> ${uiMsg}</div>` + box.innerHTML;
-            if (saveDb && currentId) { fetch(`/api/log/${currentId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: m }) }).then(() => fetchCommandLogs()); }
+            if (saveDb && currentId) {
+                fetch(`/api/log/${currentId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: m }) }).then(() => fetchCommandLogs(true));
+            }
         }
-
-        function fetchCommandLogs() {
-            if (!currentId) return; fetch(`/api/logs/${currentId}`).then(r => r.json()).then(data => {
-                const box = document.getElementById('log-box'); let html = '';
-                data.forEach(l => { let uiMsg = l.message.replace(/\[(.*?)\]/g, '<span style="color:var(--accent-green)">[$1]</span>'); html += `<div class="log-entry" style="margin-bottom: 5px;"><span style="color:var(--border-light);">[${l.time.split(' ')[1]}]</span> ${uiMsg}</div>`; });
-                if (box.dataset.lastLog !== html) { box.innerHTML = html; box.dataset.lastLog = html; }
-            }).catch(() => { });
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const box = document.getElementById('log-box');
+            if (!box) return;
+            box.addEventListener('scroll', () => {
+                renderCommandLogs();
+                if (box.scrollTop + box.clientHeight >= box.scrollHeight - LOG_ROW_HEIGHT * 5) fetchCommandLogs(false);
+            });
+        });
 
         function toggleDeaf(s, name, status) { fetch(`/api/server/${currentId}/deaf/${s}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deaf: status }) }).then(() => { addLog(`${status ? '🔕 ปิดหูฟัง' : '👂 เปิดหูฟัง'} ของ: [${name}]`); refreshData(); }); }
         function openDM(session, name) { document.getElementById('dm-session').value = session; document.getElementById('dm-name').value = name; document.getElementById('dm-message').value = ''; document.getElementById('dm-modal').style.display = 'flex'; }
