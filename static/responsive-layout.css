@@ -1,0 +1,141 @@
+/* Responsive layouts for tablets, phones, dialogs, and station management. */
+
+@media (max-width: 1024px) {
+    body[data-command-view="chat"] .main-workspace,
+    body[data-command-view="log"] .main-workspace,
+    body[data-command-view="history"] .main-workspace {
+        display: flex !important;
+        flex-direction: column;
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .workspace-chat-column,
+    .workspace-log-column,
+    .workspace-history-column { width: 100%; min-width: 0 !important; }
+
+    .modal-overlay { padding: 14px; align-items: center; }
+    .modal-content:not(.help-modal-content),
+    .sys-dialog { width: min(760px, calc(100vw - 28px)) !important; max-height: calc(100dvh - 28px) !important; }
+
+    .node-modal-content {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .node-modal-content > .panel-content { overflow-y: auto; }
+
+    .node-fleet-create,
+    .node-maintenance { gap: 14px; }
+    .node-fleet-actions { flex-wrap: wrap; justify-content: flex-end; }
+}
+
+@media (max-width: 900px) {
+    #node-modal .panel-header { align-items: flex-start; gap: 10px; }
+    #node-modal .panel-header span { line-height: 1.4; }
+    .node-fleet-create,
+    .node-maintenance { flex-direction: column; align-items: stretch !important; }
+    .node-fleet-actions,
+    .node-maintenance-actions { width: 100%; }
+    .node-fleet-actions input { min-width: 0; }
+
+    .node-list-table,
+    .node-list-table tbody,
+    .node-list-table tr,
+    .node-list-table td { display: block; width: 100%; }
+    .node-list-table thead { display: none; }
+    .node-list-table tbody { display: grid; gap: 10px; }
+    .node-list-table .user-row {
+        border: 1px solid var(--line, var(--b1));
+        border-radius: 14px;
+        background: rgba(118, 118, 128, .07);
+        padding: 8px 12px;
+    }
+    .node-list-table .user-cell {
+        display: grid;
+        grid-template-columns: minmax(88px, 30%) minmax(0, 1fr);
+        gap: 8px;
+        padding: 8px 0 !important;
+        border-bottom: 1px solid var(--line-soft, var(--b1));
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+    .node-list-table .user-cell:last-child { border-bottom: 0; }
+    .node-list-table .user-cell::before {
+        content: attr(data-label);
+        color: var(--muted, var(--txt-lo));
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .node-list-table .node-actions-cell { align-items: start; }
+    .node-action-row { display: flex; flex-wrap: wrap; gap: 7px; }
+}
+
+@media (max-width: 760px) {
+    body { min-width: 0; }
+    #dashboard { padding: 0 9px 9px; }
+    .app-header { margin: 9px 0 12px !important; align-items: stretch !important; }
+    .app-brand { gap: 10px; min-width: 0; }
+    .app-brand svg { width: 34px; height: 34px; flex: 0 0 auto; }
+    .app-title { font-size: 1.08em !important; letter-spacing: -.02em !important; }
+    .app-subtitle { font-size: .64em; letter-spacing: .08em; }
+    .header-right { width: 100%; align-items: center; }
+    .header-right .command-view-switch { flex: 0 0 100%; order: -2; justify-content: flex-start; }
+    .header-right .stats-bar { flex: 1 1 100%; margin: 0 !important; padding: 0 !important; border: 0 !important; }
+    .header-right .node-chip { min-width: 0; max-width: calc(50% - 4px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .header-right > .btn { flex: 1 1 auto; }
+
+    .main-workspace { gap: 10px !important; }
+    .panel-header { min-height: 42px; padding: 9px 11px !important; font-size: 11px !important; }
+    .panel-content { padding: 10px !important; }
+    #ai-terminal, #log-box { min-height: 230px !important; }
+    #history-frame { min-height: 590px; }
+
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal-content:not(.help-modal-content),
+    .sys-dialog {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: min(92dvh, 760px) !important;
+        border-radius: 22px 22px 0 0 !important;
+    }
+    .modal-content .panel-header { position: sticky; top: 0; z-index: 3; }
+    .modal-content .panel-header > span { min-width: 0; }
+
+    .node-fleet-actions,
+    .node-maintenance-actions,
+    .node-form-row { flex-direction: column; }
+    .node-fleet-actions > *,
+    .node-maintenance-actions > *,
+    .node-form-row > * { width: 100% !important; box-sizing: border-box; }
+    .node-port-row { display: grid; grid-template-columns: 1fr 1fr; }
+    .node-port-row #node-password,
+    .node-port-row #node-save-btn { grid-column: 1 / -1; }
+    .node-manual-form { padding: 11px !important; }
+    .node-list-table .user-cell { grid-template-columns: 78px minmax(0, 1fr); }
+    .node-action-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+    .node-action-row .btn { width: 100%; padding-inline: 5px !important; }
+
+    .topbar { margin: 9px 9px 0 !important; padding: 12px !important; }
+    .brand-block { min-width: 0; }
+    .topbar h1 { font-size: 17px !important; }
+    .top-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .top-actions .search-view-switch { grid-column: 1 / -1; }
+    .top-actions #saved-search-select,
+    .top-actions .scope-badge { grid-column: 1 / -1; }
+    .top-actions > button { width: 100%; }
+    .search-layout { margin: 9px !important; }
+    .filter-panel, .results-panel { padding: 13px !important; }
+    .result-toolbar, .section-heading { gap: 8px; align-items: flex-start; flex-wrap: wrap; }
+    body.embedded .search-layout { display: block !important; height: auto; overflow: visible; }
+    body.embedded .filter-panel,
+    body.embedded .results-panel { overflow: visible; }
+}
+
+@media (max-width: 420px) {
+    .command-view-switch button { padding-inline: 10px !important; font-size: 11px; }
+    .header-right .node-chip { flex: 1 1 100%; max-width: 100%; }
+    .node-action-row { grid-template-columns: 1fr; }
+    .node-list-table .user-cell { grid-template-columns: 70px minmax(0, 1fr); }
+    .top-actions { grid-template-columns: 1fr; }
+    .top-actions > * { grid-column: 1 / -1; }
+}

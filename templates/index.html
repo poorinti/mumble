@@ -1,0 +1,2640 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <title>COMMAND CENTER by poorin of signal 6</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --bg: #06100a;
+            --bg-panel: #0a1a0e;
+            --bg-card: #0f2214;
+            --bg-row: #081409;
+            --b1: #1c3a24;
+            --b2: #2a5535;
+            --b3: #3a7048;
+            --accent: #4cdd7a;
+            --accent-dim: #1e7a3a;
+            --accent-hi: #80ffaa;
+            --red: #e53935;
+            --red-dim: #7a1010;
+            --amber: #f0a500;
+            --blue: #1e9fd4;
+            --purple: #9c60e0;
+            --txt: #c8e8d0;
+            --txt-hi: #eaf5ec;
+            --txt-lo: #4d8a5c;
+            --txt-dim: #2a5535;
+            --mono: 'Share Tech Mono', monospace;
+            --sans: 'IBM Plex Sans Thai', sans-serif;
+
+            --accent-green: var(--accent);
+            --accent-warn: var(--amber);
+            --accent-red: var(--red);
+            --accent-blue: var(--blue);
+            --border-main: var(--b1);
+            --border-light: var(--b2);
+            --text-muted: var(--txt-lo);
+            --text-main: var(--txt);
+            --bg-dark: var(--bg-row);
+        }
+
+        body.light-mode {
+            --bg: #ddeede;
+            --bg-panel: #eaf5eb;
+            --bg-card: #dff0e0;
+            --bg-row: #e6f2e7;
+            --b1: #a8ccb0;
+            --b2: #7aaa84;
+            --b3: #4d8a5c;
+            --accent: #1a6b30;
+            --accent-dim: #2d8a44;
+            --accent-hi: #0d4020;
+            --txt: #000000;
+            --txt-hi: #000000;
+            --txt-lo: #333333;
+            --txt-dim: #7aaa84;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--txt);
+            font-family: var(--sans);
+            font-size: 14.5px;
+            padding: 14px 18px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--b2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        .app-header {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-panel);
+            border: 1px solid var(--b1);
+            border-top: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .app-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--txt-hi);
+            font-family: var(--sans);
+        }
+
+        .app-subtitle {
+            color: var(--accent);
+            font-size: 0.75em;
+            font-family: var(--mono);
+            letter-spacing: 1.5px;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #dashboard {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .main-workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.15fr) minmax(0, 1.15fr);
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .sticky-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--b1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            min-height: 0;
+            position: relative;
+        }
+
+        .panel-stretch {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            flex-shrink: 0;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--b1);
+            border-radius: 8px 8px 0 0;
+            padding: 10px 16px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--sans);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-left: 4px solid var(--accent);
+        }
+
+        .panel-content {
+            padding: 14px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .room-card {
+            background: var(--bg-card);
+            border: 1px solid var(--b1);
+            border-radius: 6px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .room-header {
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-row);
+            border-bottom: 1px solid var(--b1);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .room-name {
+            font-weight: 600;
+            font-size: 1.05em;
+            color: var(--txt-hi);
+            letter-spacing: 0.5px;
+        }
+
+        .user-count {
+            color: var(--txt-lo);
+            font-size: 0.85em;
+            margin-left: 8px;
+            font-family: var(--mono);
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .user-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background 0.15s;
+            cursor: grab;
+        }
+
+        .user-row:hover {
+            background: rgba(76, 221, 122, 0.06);
+        }
+
+        .user-cell {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            vertical-align: middle;
+        }
+
+        .ping-badge {
+            background: var(--bg-row);
+            border: 1px solid var(--b1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--mono);
+            font-size: 0.75em;
+        }
+
+        .ping-good {
+            color: var(--accent);
+            border-color: var(--accent-dim);
+        }
+
+        .ping-warn {
+            color: var(--amber);
+            border-color: #925c0e;
+        }
+
+        .ping-bad {
+            color: var(--red);
+            border-color: var(--red-dim);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            flex-shrink: 0;
+            margin-right: 5px;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 4px var(--accent);
+            }
+
+            50% {
+                box-shadow: 0 0 10px var(--accent), 0 0 15px rgba(76, 221, 122, 0.3);
+            }
+        }
+
+        .status-dot {
+            animation: pulse 2.5s infinite;
+        }
+
+        .dot-red {
+            background: var(--red);
+            box-shadow: 0 0 5px var(--red);
+            animation: none;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85em;
+            color: var(--txt-lo);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        input,
+        select,
+        textarea {
+            background: var(--bg-row);
+            border: 1px solid var(--b1);
+            color: var(--txt);
+            padding: 8px 12px;
+            border-radius: 5px;
+            outline: none;
+            flex: 1;
+            font-family: inherit;
+            font-size: 0.9em;
+            transition: 0.2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(76, 221, 122, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn {
+            padding: 5px 12px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.8em;
+        }
+
+        .btn-icon {
+            padding: 4px 6px;
+            font-size: 0.95em;
+            border-radius: 4px;
+        }
+
+        .btn-primary {
+            background: rgba(76, 221, 122, 0.12);
+            border-color: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dim);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(76, 221, 122, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--red-dim);
+            color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: #925c0e;
+            color: var(--amber);
+        }
+
+        .btn-warning:hover {
+            background: var(--amber);
+            color: #000;
+        }
+
+        .btn-blue {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: #0c4a6e;
+            color: var(--blue);
+        }
+
+        .btn-blue:hover {
+            background: var(--blue);
+            color: #000;
+        }
+
+        .btn-dark {
+            background: transparent;
+            border-color: var(--b2);
+            color: var(--txt-lo);
+        }
+
+        .btn-dark:hover {
+            background: var(--bg-row);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ✨ ปุ่มกดไมค์ (PTT) Effect */
+        #ptt-btn {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: 0.1s;
+            user-select: none;
+        }
+
+        #ptt-btn.recording {
+            background: rgba(229, 57, 53, 0.2) !important;
+            border-color: var(--red) !important;
+            color: var(--red) !important;
+            box-shadow: 0 0 25px rgba(229, 57, 53, 0.6) !important;
+            transform: scale(0.95);
+        }
+
+        #theme-toggle {
+            background: transparent;
+            border: 1px solid var(--b2);
+            color: var(--txt-lo);
+            border-radius: 5px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-family: var(--sans);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        #theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(76, 221, 122, 0.05);
+        }
+
+        .ai-badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--blue);
+            border: 1px solid #0c4a6e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-family: var(--mono);
+            letter-spacing: 1px;
+        }
+
+        #ai-terminal,
+        #log-box {
+            font-family: var(--mono);
+            font-size: 0.85em;
+            border: 1px solid var(--b1);
+            padding: 12px;
+            border-radius: 6px;
+            flex: 1;
+            overflow-y: auto;
+            line-height: 1.5;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+            min-height: 0;
+            height: 100%;
+        }
+
+        #ai-terminal {
+            color: #4ade80;
+            background: #030f06;
+        }
+
+        #log-box {
+            color: var(--txt-lo);
+            background: #030f06;
+        }
+
+        body.light-mode #ai-terminal {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: var(--b1);
+        }
+
+        body.light-mode #log-box {
+            background: #f8fafc;
+            color: var(--txt-lo);
+            border-color: var(--b1);
+        }
+
+        audio {
+            height: 30px;
+            border-radius: 4px;
+            outline: none;
+            margin-top: 6px;
+            max-width: 250px;
+            filter: invert(85%) sepia(100%) saturate(0%) hue-rotate(180deg);
+        }
+
+        body.light-mode audio {
+            filter: none;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .processing-status {
+            color: var(--amber);
+            font-size: 0.85em;
+            padding: 4px 0 4px 10px;
+            margin-bottom: 5px;
+            border-left: 3px solid var(--amber);
+            background: rgba(245, 158, 11, 0.08);
+            animation: blinker 1.2s linear infinite;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 40px;
+            background: var(--bg-card);
+            width: 230px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--b2);
+            z-index: 999;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .dropdown-content button {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 8px 14px;
+            color: var(--txt);
+            font-family: inherit;
+            font-size: 0.82em;
+            cursor: pointer;
+            border-bottom: 1px solid var(--b1);
+            transition: 0.15s;
+        }
+
+        .dropdown-content button:hover {
+            background: rgba(76, 221, 122, 0.07);
+            color: var(--accent);
+            padding-left: 18px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 5, 2, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--b1);
+            border-top: 4px solid var(--accent);
+            border-radius: 8px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(76, 221, 122, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .help-modal-content {
+            width: min(900px, calc(100vw - 28px));
+            padding: 0;
+        }
+
+        .help-button {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            background: rgba(76, 221, 122, 0.12);
+            color: var(--accent-hi);
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .help-button:hover,
+        .help-button:focus-visible {
+            background: rgba(76, 221, 122, 0.28);
+            box-shadow: 0 0 0 3px rgba(76, 221, 122, 0.14);
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .help-body {
+            padding: 20px;
+            max-height: 72vh;
+            overflow-y: auto;
+        }
+
+        .help-intro {
+            color: var(--txt-hi);
+            background: rgba(76, 221, 122, 0.08);
+            border: 1px solid var(--b2);
+            border-radius: 7px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+        }
+
+        .help-visual {
+            background: var(--bg-row);
+            border: 1px solid var(--b1);
+            border-radius: 7px;
+            padding: 10px 12px 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .help-visual-caption {
+            color: var(--txt-lo);
+            font-family: var(--mono);
+            font-size: 0.72em;
+            letter-spacing: 1.2px;
+            margin-bottom: 4px;
+        }
+
+        .help-visual svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            min-height: 118px;
+        }
+
+        .help-visual .workflow-line {
+            stroke: var(--b3);
+            stroke-width: 2;
+            stroke-dasharray: 5 4;
+        }
+
+        .help-visual .workflow-node {
+            fill: var(--bg-card);
+            stroke: var(--b2);
+            stroke-width: 2;
+        }
+
+        .help-visual .workflow-node-accent {
+            fill: rgba(76, 221, 122, 0.13);
+            stroke: var(--accent);
+        }
+
+        .help-visual .workflow-number {
+            fill: var(--accent);
+            font: 700 13px var(--mono);
+        }
+
+        .help-visual .workflow-title {
+            fill: var(--txt-hi);
+            font: 700 13px var(--sans);
+        }
+
+        .help-visual .workflow-subtitle {
+            fill: var(--txt-lo);
+            font: 10px var(--sans);
+        }
+
+        .help-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .help-card {
+            background: var(--bg-card);
+            border: 1px solid var(--b1);
+            border-radius: 7px;
+            padding: 13px 15px;
+        }
+
+        .help-card-heading {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 9px;
+        }
+
+        .help-step-icon {
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--accent-dim);
+            border-radius: 11px;
+            color: var(--accent-hi);
+            background: linear-gradient(145deg, rgba(76, 221, 122, .2), rgba(76, 221, 122, .04));
+            box-shadow: inset 0 0 14px rgba(76, 221, 122, .08), 0 5px 14px rgba(0, 0, 0, .18);
+        }
+
+        .help-step-icon.is-blue { color: var(--blue); border-color: #0c4a6e; background: linear-gradient(145deg, rgba(30, 159, 212, .22), rgba(30, 159, 212, .04)); }
+        .help-step-icon.is-amber { color: var(--amber); border-color: #925c0e; background: linear-gradient(145deg, rgba(240, 165, 0, .2), rgba(240, 165, 0, .04)); }
+        .help-step-icon.is-red { color: #ff7774; border-color: var(--red-dim); background: linear-gradient(145deg, rgba(229, 57, 53, .2), rgba(229, 57, 53, .04)); }
+        .help-step-icon.is-purple { color: var(--purple); border-color: #59348a; background: linear-gradient(145deg, rgba(156, 96, 224, .2), rgba(156, 96, 224, .04)); }
+
+        .help-step-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .help-step-label {
+            display: block;
+            color: var(--txt-lo);
+            font-family: var(--mono);
+            font-size: .68em;
+            letter-spacing: 1.1px;
+            margin-bottom: 1px;
+        }
+
+        .help-ui-demo {
+            position: relative;
+            background: var(--bg-row);
+            border: 1px solid var(--b1);
+            border-radius: 7px;
+            padding: 9px;
+            margin: 3px 0 11px;
+            overflow: hidden;
+            box-shadow: inset 0 0 18px rgba(0, 0, 0, .14);
+        }
+
+        .help-ui-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--accent);
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            padding: 6px 8px;
+            margin-bottom: 7px;
+            font-weight: 600;
+            font-size: .78em;
+        }
+
+        .help-ui-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 7px;
+            padding: 6px 7px;
+            border: 1px solid var(--b1);
+            border-radius: 5px;
+            background: var(--bg-panel);
+            color: var(--txt);
+            font-size: .76em;
+            margin-top: 5px;
+        }
+
+        .help-ui-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+
+        .help-ui-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-height: 24px;
+            padding: 3px 8px;
+            border: 1px solid var(--b2);
+            border-radius: 4px;
+            color: var(--txt-lo);
+            background: transparent;
+            font-size: .74em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .help-ui-button.primary { color: var(--accent); border-color: var(--accent-dim); background: rgba(76, 221, 122, .12); }
+        .help-ui-button.blue { color: var(--blue); border-color: #0c4a6e; background: rgba(30, 159, 212, .14); }
+        .help-ui-button.amber { color: var(--amber); border-color: #925c0e; background: rgba(240, 165, 0, .12); }
+        .help-ui-button.danger { color: #ff7774; border-color: var(--red-dim); background: rgba(229, 57, 53, .12); }
+        .help-ui-button.highlight { box-shadow: 0 0 0 2px rgba(76, 221, 122, .22), 0 0 13px rgba(76, 221, 122, .2); }
+
+        .help-callout {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            border-radius: 50%;
+            background: var(--amber);
+            color: #161006;
+            font: 700 11px var(--mono);
+            box-shadow: 0 0 0 3px rgba(240, 165, 0, .15);
+        }
+
+        .help-ui-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            color: var(--txt-lo);
+            font-size: .72em;
+            line-height: 1.45;
+            margin-top: 7px;
+        }
+
+        .help-ui-field {
+            flex: 1;
+            min-height: 26px;
+            padding: 4px 7px;
+            border: 1px solid var(--b1);
+            border-radius: 4px;
+            color: var(--txt-lo);
+            background: var(--bg-row);
+        }
+
+        .help-ui-status { color: var(--accent); font-family: var(--mono); font-size: .75em; }
+        .help-ui-status::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 7px var(--accent); }
+        .help-ui-menu { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--b2); border-radius: 5px; background: var(--bg-panel); }
+        .help-ui-menu div { padding: 5px 7px; color: var(--txt); background: var(--bg-row); border-radius: 4px; font-size: .74em; }
+        .help-ui-menu .selected { color: var(--accent); border: 1px solid var(--accent-dim); background: rgba(76, 221, 122, .08); }
+
+        .help-card h3 {
+            color: var(--accent);
+            font-size: 1em;
+            margin-bottom: 0;
+        }
+
+        .help-card p,
+        .help-card li {
+            color: var(--txt);
+            font-size: 0.9em;
+            line-height: 1.65;
+        }
+
+        .help-card ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .help-shortcuts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 8px;
+        }
+
+        .help-key {
+            border: 1px solid var(--b2);
+            background: var(--bg-row);
+            color: var(--accent-hi);
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-family: var(--mono);
+            font-size: 0.82em;
+        }
+
+        @media(max-width: 680px) {
+            .help-grid { grid-template-columns: 1fr; }
+            .help-body { padding: 14px; }
+        }
+
+        .sys-dialog {
+            width: 420px;
+            text-align: center;
+            padding: 0;
+        }
+
+        .sys-dialog-body {
+            padding: 24px 20px;
+            font-size: 1.05em;
+            color: var(--txt-hi);
+            line-height: 1.6;
+        }
+
+        .sys-dialog-footer {
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid var(--b1);
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(76, 221, 122, 0.03) 40px, rgba(76, 221, 122, 0.03) 41px),
+                repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(76, 221, 122, 0.03) 40px, rgba(76, 221, 122, 0.03) 41px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #login-screen .panel {
+            box-shadow: 0 0 60px rgba(76, 221, 122, 0.1), 0 25px 50px rgba(0, 0, 0, 0.8);
+            border-top: 4px solid var(--accent);
+        }
+
+        .ban-row {
+            border-bottom: 1px solid var(--b1);
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        @media(max-width: 1024px) {
+            body {
+                height: auto;
+                overflow: auto;
+                display: block;
+            }
+
+            .main-workspace {
+                grid-template-columns: 1fr;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .sticky-col {
+                position: static;
+                height: auto;
+                min-height: auto;
+            }
+
+            .app-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .panel {
+                min-height: auto;
+            }
+
+            #ai-terminal,
+            #log-box {
+                min-height: 250px;
+            }
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-card, #0f2214);
+            border: 1px solid var(--b1, #1c3a24);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.74em;
+            color: var(--txt-lo, #4d8a5c);
+            white-space: nowrap;
+        }
+
+        .stat-chip .val {
+            color: var(--accent-green, #4cdd7a);
+            font-weight: 700;
+            margin-left: 2px;
+        }
+
+        .node-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-surface, #1a241d);
+            border: 1px solid var(--border-main, #2a3d30);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.78em;
+            color: var(--text-muted, #8ba88b);
+            white-space: nowrap;
+        }
+
+        .node-chip.connected {
+            border-color: var(--accent-green, #4ade80);
+            color: var(--accent-green, #4ade80);
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='ios-theme.css', v='20260819-1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='spatial-network.css', v='20260819-7') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260819-1') }}">
+</head>
+
+<body>
+
+    <div id="sys-modal" class="modal-overlay" style="z-index: 10001;">
+        <div class="modal-content sys-dialog">
+            <div class="panel-header" id="sys-modal-title" style="justify-content: center; font-size: 1.2em;">SYSTEM
+                ALERT</div>
+            <div class="sys-dialog-body" id="sys-modal-msg"></div>
+            <div class="sys-dialog-footer" id="sys-modal-btns"></div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="help-title"
+        onclick="if(event.target === this) closeHelp()">
+        <div class="modal-content help-modal-content">
+            <div class="panel-header">
+                <span id="help-title">❔ คู่มือการใช้งาน ROIP COMMAND CENTER</span>
+                <button class="btn btn-danger btn-sm" type="button" onclick="closeHelp()">ปิด</button>
+            </div>
+            <div class="help-body">
+                <div class="help-intro">
+                    หน้านี้ใช้ควบคุมสถานี Mumble, ดูผู้ใช้งานแบบสด, ส่งข้อความ/เสียง และค้นหาหลักฐานการสื่อสารย้อนหลัง
+                    หากไม่แน่ใจ ให้เริ่มจากเลือกสถานีทางซ้าย แล้วดูสถานะการเชื่อมต่อที่มุมขวาบน
+                </div>
+                <div class="help-visual" role="img" aria-label="ภาพขั้นตอนการทำงานของ ROIP Command Center">
+                    <div class="help-visual-caption">ROIP OPERATIONS FLOW</div>
+                    <svg viewBox="0 0 860 150" aria-hidden="true" focusable="false">
+                        <defs>
+                            <marker id="workflow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--b3)"></path>
+                            </marker>
+                        </defs>
+                        <line class="workflow-line" x1="190" y1="74" x2="240" y2="74" marker-end="url(#workflow-arrow)"></line>
+                        <line class="workflow-line" x1="405" y1="74" x2="455" y2="74" marker-end="url(#workflow-arrow)"></line>
+                        <line class="workflow-line" x1="620" y1="74" x2="670" y2="74" marker-end="url(#workflow-arrow)"></line>
+                        <g transform="translate(12 25)">
+                            <rect class="workflow-node-accent" width="178" height="98" rx="8"></rect>
+                            <text class="workflow-number" x="14" y="25">01</text>
+                            <text class="workflow-title" x="14" y="53">เลือกสถานี</text>
+                            <text class="workflow-subtitle" x="14" y="74">ตรวจสถานะ Online</text>
+                        </g>
+                        <g transform="translate(240 25)">
+                            <rect class="workflow-node" width="165" height="98" rx="8"></rect>
+                            <text class="workflow-number" x="14" y="25">02</text>
+                            <text class="workflow-title" x="14" y="53">ควบคุมสด</text>
+                            <text class="workflow-subtitle" x="14" y="74">ห้อง ผู้ใช้ และเสียง</text>
+                        </g>
+                        <g transform="translate(455 25)">
+                            <rect class="workflow-node" width="165" height="98" rx="8"></rect>
+                            <text class="workflow-number" x="14" y="25">03</text>
+                            <text class="workflow-title" x="14" y="53">ค้นย้อนหลัง</text>
+                            <text class="workflow-subtitle" x="14" y="74">แชท Transcript Audio</text>
+                        </g>
+                        <g transform="translate(670 25)">
+                            <rect class="workflow-node-accent" width="178" height="98" rx="8"></rect>
+                            <text class="workflow-number" x="14" y="25">04</text>
+                            <text class="workflow-title" x="14" y="53">เก็บหลักฐาน</text>
+                            <text class="workflow-subtitle" x="14" y="74">Bookmark Incident Export</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="help-grid">
+                    <section class="help-card">
+                        <div class="help-card-heading">
+                            <span class="help-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"></circle><path d="M12 7v13M8 20h8M7.5 10.5a6.5 6.5 0 0 1 0-9M16.5 10.5a6.5 6.5 0 0 0 0-9"></path></svg></span>
+                            <div><span class="help-step-label">STEP 01 · CONNECT</span><h3>เริ่มใช้งาน</h3></div>
+                        </div>
+                        <div class="help-ui-demo" aria-label="ภาพตัวอย่างการเชื่อมต่อสถานี">
+                            <div class="help-ui-bar"><span>⚙️ จัดการสถานี</span><span class="help-callout">1</span></div>
+                            <div class="help-ui-row"><span><b>สถานีหลัก</b><br><span class="help-ui-status">ONLINE</span></span><span class="help-ui-actions"><span class="help-callout">2</span><span class="help-ui-button primary highlight">เชื่อมต่อ</span><span class="help-ui-button">แก้ไข</span></span></div>
+                            <div class="help-ui-note"><span class="help-callout">✓</span><span>กด “จัดการสถานี” แล้วกดปุ่มสีเขียว “เชื่อมต่อ” ของสถานีที่ต้องการ</span></div>
+                        </div>
+                        <ul>
+                            <li>ใส่รหัสผ่าน Command Center แล้วกดเข้าสู่ระบบ</li>
+                            <li>เลือกสถานีจากรายการสถานี หรือกด “จัดการสถานี” เพื่อเพิ่ม/แก้ไข</li>
+                            <li>สถานะสีเขียวหมายถึงเชื่อมต่อได้ สีแดงหมายถึงสถานีหรือ ICE ยังไม่พร้อม</li>
+                        </ul>
+                    </section>
+                    <section class="help-card">
+                        <div class="help-card-heading">
+                            <span class="help-step-icon is-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M9 9v12"></path><circle cx="15" cy="14" r="2"></circle><path d="M12.5 19c.6-1.8 4.4-1.8 5 0"></path></svg></span>
+                            <div><span class="help-step-label">STEP 02 · LIVE ROOMS</span><h3>ดูห้องและผู้ใช้งาน</h3></div>
+                        </div>
+                        <div class="help-ui-demo" aria-label="ภาพตัวอย่างปุ่มควบคุมผู้ใช้ในห้อง">
+                            <div class="help-ui-bar"><span># ห้องปฏิบัติการ (2 นาย)</span><span class="help-ui-actions"><span class="help-ui-button amber">🔇</span><span class="help-ui-button blue">✏️</span><span class="help-ui-button">⚙️</span></span></div>
+                            <div class="help-ui-row"><span>🟢 <b>เจ้าหน้าที่-01</b></span><span class="help-ui-actions"><span class="help-callout">1</span><span class="help-ui-button amber">🔇 ปิดไมค์</span><span class="help-ui-button blue">💬 ข้อความ</span><span class="help-ui-button danger">👢 เตะ</span></span></div>
+                            <div class="help-ui-note"><span class="help-callout">✓</span><span>ปุ่มคำสั่งอยู่ด้านขวาของชื่อผู้ใช้ และปุ่มควบคุมทั้งห้องอยู่ที่หัวห้อง</span></div>
+                        </div>
+                        <ul>
+                            <li>แผนผังห้องจะแสดงผู้ใช้งานแบบสดและจำนวนผู้ใช้</li>
+                            <li>คลิกผู้ใช้เพื่อดูคำสั่ง เช่น ย้ายห้อง ปิดไมค์ ปิดหูฟัง เตะ หรือแบน</li>
+                            <li>กด <b>⋮</b> ที่แผง “สถานะระบบ” เพื่อเปิดเมนูรีสตาร์ต ตั้งค่าขั้นสูง เปลี่ยนรหัสผ่าน หรือดู Log ของเซิร์ฟเวอร์</li>
+                        </ul>
+                    </section>
+                    <section class="help-card">
+                        <div class="help-card-heading">
+                            <span class="help-step-icon is-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5M7 10.5h7M9 7.5h3"></path></svg></span>
+                            <div><span class="help-step-label">STEP 03 · SEARCH</span><h3>ค้นหาแชทและเสียงย้อนหลัง</h3></div>
+                        </div>
+                        <div class="help-ui-demo" aria-label="ภาพตัวอย่างการเปิดหน้าค้นหา">
+                            <div class="help-ui-bar"><span>แผนผัง</span><span class="help-ui-actions"><span class="help-ui-button">หน้าแชท</span><span class="help-ui-button">หน้า Log</span><span class="help-callout">1</span><span class="help-ui-button primary highlight">ประวัติ</span></span></div>
+                            <div class="help-ui-note"><span class="help-callout">✓</span><span>กด “ประวัติ” บนแถบด้านบน ระบบค้นหาแชทและเสียงจะเปิดในโซนขวา โดยไม่ออกจาก Dashboard</span></div>
+                        </div>
+                        <ul>
+                            <li>กด <b>ประวัติ</b> บน Header เพื่อเปิดหน้าค้นหาแชทและเสียงย้อนหลัง</li>
+                            <li>พิมพ์คำค้น แล้วกรองสถานี ผู้พูด ช่วงเวลา Keyword Confidence หรือ Incident</li>
+                            <li>เปิด “คำใกล้เคียง” เมื่อต้องการค้นหา transcript ที่สะกดคลาดเคลื่อน</li>
+                            <li>คลิกผลลัพธ์เพื่อดูบริบทก่อน–หลังและเล่นไฟล์เสียงหลักฐาน</li>
+                        </ul>
+                    </section>
+                    <section class="help-card">
+                        <div class="help-card-heading">
+                            <span class="help-step-icon is-amber" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.8-2.8 8.2-7 10-4.2-1.8-7-5.2-7-10V6l7-3Z"></path><path d="m8.5 12 2.2 2.2 4.8-5"></path></svg></span>
+                            <div><span class="help-step-label">STEP 04 · EVIDENCE</span><h3>เก็บหลักฐานและเหตุการณ์</h3></div>
+                        </div>
+                        <div class="help-ui-demo" aria-label="ภาพตัวอย่างปุ่มจัดการหลักฐาน">
+                            <div class="help-ui-bar"><span>MESSAGE EVIDENCE</span><span class="help-ui-status">มีไฟล์เสียง</span></div>
+                            <div class="help-ui-row"><span class="help-ui-field">▶ 00:14 / 00:38</span></div>
+                            <div class="help-ui-row"><span class="help-ui-actions"><span class="help-callout">1</span><span class="help-ui-button primary">Bookmark / Note</span><span class="help-ui-button blue">แก้ Transcript</span><span class="help-ui-button danger">เปิด Incident</span></span></div>
+                            <div class="help-ui-note"><span class="help-callout">✓</span><span>เลือกผลค้นหาก่อน แล้วใช้ปุ่มใต้เครื่องเล่นเสียงเพื่อเก็บหลักฐานหรือเปิดเหตุการณ์</span></div>
+                        </div>
+                        <ul>
+                            <li><b>Bookmark / Note</b> ใช้ติดป้ายและบันทึกหมายเหตุส่วนตัว</li>
+                            <li><b>แก้ Transcript</b> แก้ข้อความ STT ผิด โดยระบบเก็บประวัติ Revision</li>
+                            <li><b>เปิด Incident</b> รวมข้อความสำคัญเข้ากรณีเดียวกัน พร้อมระดับความรุนแรง</li>
+                            <li>กด Export CSV เพื่อส่งต่อรายงานผลการค้นหา</li>
+                        </ul>
+                    </section>
+                    <section class="help-card">
+                        <div class="help-card-heading">
+                            <span class="help-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10h4l5-4v12l-5-4H4v-4Z"></path><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"></path></svg></span>
+                            <div><span class="help-step-label">STEP 05 · VOICE &amp; AI</span><h3>ส่งเสียงและบอท AI</h3></div>
+                        </div>
+                        <div class="help-ui-demo" aria-label="ภาพตัวอย่างปุ่มวางบอท AI">
+                            <div class="help-ui-bar"><span>AI ถอดรหัสเสียง</span><span class="help-ui-actions"><span class="help-callout">1</span><span class="help-ui-button primary highlight">+ ส่งลงพื้นที่ (Root)</span><span class="help-ui-button primary">+ ทุกห้อง</span></span></div>
+                            <div class="help-ui-row"><span><b>AI โทรโข่ง</b><br><span style="color:var(--txt-lo)">เลือกห้อง Root</span></span><span class="help-ui-actions"><span class="help-callout">2</span><span class="help-ui-button blue highlight">วางบอท</span><span class="help-ui-button danger">ถอนบอท</span></span></div>
+                            <div class="help-ui-row"><span class="help-ui-field">พิมพ์ข้อความให้ AI พูด...</span><span class="help-ui-actions"><span class="help-callout">3</span><span class="help-ui-button blue">AI พูด</span></span></div>
+                            <div class="help-ui-note"><span class="help-callout">✓</span><span>“ส่งลงพื้นที่” คือบอทฟัง/ถอดเสียง ส่วน “วางบอท” ใน AI โทรโข่งคือบอทพูดและไมค์เว็บ</span></div>
+                        </div>
+                        <ul>
+                            <li>เมนู AI ใช้วาง/ถอนบอทลำโพงและตั้งค่า Auto-start</li>
+                            <li>ช่อง TTS ใช้แปลงข้อความเป็นเสียงแล้วส่งเข้าสถานี</li>
+                            <li>ไมค์เว็บใช้ส่งเสียงสดได้เมื่อวางบอทลำโพงไว้ในสถานีแล้ว</li>
+                            <li>คำเฝ้าระวังจะแสดงใน Keyword Alerts และบันทึกเสียงเมื่อมีหลักฐาน</li>
+                        </ul>
+                    </section>
+                    <section class="help-card">
+                        <div class="help-card-heading">
+                            <span class="help-step-icon is-red" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"></path><path d="m9.5 17 1.5 1.5 3-3"></path></svg></span>
+                            <div><span class="help-step-label">STEP 06 · RECOVERY</span><h3>สำรองและแก้ปัญหา</h3></div>
+                        </div>
+                        <div class="help-ui-demo" aria-label="ภาพตัวอย่างสถานะระบบและปุ่มสำรองข้อมูล">
+                            <div class="help-ui-bar"><span>สถานะระบบ</span><span class="help-ui-status">ONLINE</span></div>
+                            <div class="help-ui-row"><span>ฐานข้อมูล PostgreSQL</span><span class="help-ui-status">READY</span></div>
+                            <div class="help-ui-row"><span class="help-ui-actions"><span class="help-callout">1</span><span class="help-ui-button primary">💾 สำรองข้อมูล</span><span class="help-ui-button danger">Restore</span></span></div>
+                            <div class="help-ui-note"><span class="help-callout">!</span><span>ตรวจไฟสถานะให้เป็นสีเขียวและสำรองข้อมูลก่อนกด Restore หรืออัปเดตระบบ</span></div>
+                        </div>
+                        <ul>
+                            <li>สำรองข้อมูลก่อน Restore หรือก่อนอัปเดตระบบทุกครั้ง</li>
+                            <li>ถ้าค้นหาไม่พบ ให้ตรวจว่าฐานข้อมูลและสถานีเป็นสีเขียว แล้วลองล้างตัวกรอง</li>
+                            <li>ถ้าเสียงเปิดไม่ได้ ไฟล์อาจถูกลบตามนโยบายเก็บหลักฐาน</li>
+                            <li>ถ้าสถานี Offline ให้ตรวจ Docker container, port และ ICE secret</li>
+                        </ul>
+                    </section>
+                    <section class="help-card">
+                        <div class="help-card-heading">
+                            <span class="help-step-icon is-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M3 20c.4-4 2.2-6 5-6 1.6 0 2.9.7 3.8 2"></path><circle cx="16.5" cy="11.5" r="2.5"></circle><path d="m18.4 13.4 3.1 3.1M19.7 15.7l-1.4 1.4"></path></svg></span>
+                            <div><span class="help-step-label">STEP 07 · PERMISSIONS</span><h3>กำหนดสิทธิ์ผู้ใช้</h3></div>
+                        </div>
+                        <div class="help-ui-demo" aria-label="ภาพตัวอย่างหน้ากำหนดสิทธิ์ผู้ใช้">
+                            <div class="help-ui-bar"><span>👥 ผู้ใช้ระบบ</span><span class="help-callout">1</span></div>
+                            <div class="help-ui-row"><span><b>operator01</b><br><span style="color:var(--txt-lo)">Role: User</span></span><span class="help-ui-actions"><span class="help-ui-field">☑ Root<br>☑ ห้องเหนือ</span><span class="help-callout">2</span><span class="help-ui-button primary highlight">บันทึก</span></span></div>
+                            <div class="help-ui-note"><span class="help-callout">✓</span><span>Admin เปิด “ผู้ใช้ระบบ” เลือกห้องที่บัญชีเห็นข้อมูลย้อนหลัง แล้วกดบันทึก</span></div>
+                        </div>
+                        <ul>
+                            <li><b>User</b> ใช้คำสั่งควบคุมได้ทั้งหมด เช่น ย้าย/เตะ/แบน/ปิดไมค์/ส่งข้อความ/ตั้งค่าห้อง แต่สร้างหรือลบห้องไม่ได้</li>
+                            <li><b>Admin</b> ทำได้เหมือน User และเพิ่ม/ลบห้อง จัดการสถานี และสร้างบัญชีผู้ใช้ได้</li>
+                            <li>Admin เปิดเมนู <b>ผู้ใช้ระบบ</b> เพื่อสร้างบัญชี เปลี่ยนบทบาท รีเซ็ตรหัสผ่าน หรือปิดใช้งานบัญชี</li>
+                            <li>บัญชีถูกเก็บใน PostgreSQL ด้วย password hash และระบบจะไม่อนุญาตให้ลบ/ลดสิทธิ์ Admin คนสุดท้าย</li>
+                        </ul>
+                    </section>
+                </div>
+                <div class="help-card" style="margin-top: 12px;">
+                    <h3>ปุ่มลัด</h3>
+                    <div class="help-shortcuts">
+                        <span class="help-key">Ctrl + K</span><span>โฟกัสช่องค้นหาในหน้าค้นหาแชท</span>
+                        <span class="help-key">ESC</span><span>ปิดหน้าต่างคู่มือหรือรายละเอียด</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-screen">
+        <div class="panel" style="width: 380px; text-align: center; padding: 40px; border-color: var(--accent-green);">
+            <h2 style="color: var(--accent-green); margin-top: 0; letter-spacing: 2px;">COMMAND AUTHORIZATION</h2>
+            <input type="text" id="login-username" placeholder="ชื่อผู้ใช้ (USERNAME)" autocomplete="username"
+                style="text-align: center; font-size: 1.05em; margin-bottom: 12px; padding: 12px;"
+                onkeypress="if(event.key === 'Enter') authenticate()">
+            <input type="password" id="login-password" placeholder="รหัสผ่าน (PASSWORD)" autocomplete="current-password"
+                style="text-align: center; font-size: 1.05em; margin-bottom: 20px; padding: 12px;"
+                onkeypress="if(event.key === 'Enter') authenticate()">
+            <button class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1em;"
+                onclick="authenticate()">เข้าสู่ระบบ</button>
+        </div>
+    </div>
+
+    <div id="dashboard" style="display: none;">
+        <div class="app-header">
+            <div class="app-brand">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green,#4cdd7a)"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                    <line x1="12" y1="12" x2="19" y2="5"></line>
+                </svg>
+                <div>
+                    <h1 class="app-title">ROIP COMMAND CENTER</h1>
+                    <span class="app-subtitle"> by poorin signal-6</span>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="command-view-switch" role="group" aria-label="เลือกมุมมอง Command Center">
+                    <button type="button" class="active" data-command-view="spatial" onclick="setCommandView('spatial')">แผนผัง</button>
+                    <button type="button" data-command-view="chat" onclick="setCommandView('chat')">หน้าแชท</button>
+                    <button type="button" data-command-view="log" onclick="setCommandView('log')">หน้า Log</button>
+                    <button type="button" data-command-view="history" onclick="setCommandView('history')">ประวัติ</button>
+                </div>
+                <div class="stats-bar" id="stats-bar"
+                    style="display:none; margin-right: 12px; padding-right: 15px; border-right: 1px solid var(--border-main);">
+                    <div class="stat-chip" title="เซิร์ฟเวอร์ออนไลน์" style="display: none;">🟢 <span class="val"
+                            id="stat-servers">-/-</span></div>
+                    <div class="stat-chip" title="ผู้ใช้งานในสถานีปัจจุบัน">👤 <span class="val"
+                            id="stat-users">-</span></div>
+                    <div class="stat-chip" title="ห้องทั้งหมดในสถานีปัจจุบัน">📁 <span class="val"
+                            id="stat-channels">-</span></div>
+                    <div class="stat-chip" title="บอท AI ในสถานีปัจจุบัน">🤖 <span class="val" id="stat-bots">-</span>
+                    </div>
+                </div>
+
+                <div class="node-chip" id="node-chip-wrap">◉ <span id="current-node-name">ยังไม่เชื่อมต่อ</span></div>
+                <div class="node-chip" id="user-session-chip" title="บัญชีผู้ใช้ปัจจุบัน">👤 <span id="current-username">-</span></div>
+                <button id="theme-toggle" onclick="toggleTheme()">◐ LIGHT</button>
+                <button class="btn btn-dark" id="admin-users-btn" style="display:none;"
+                    onclick="openAdminUsers()">👥 ผู้ใช้ระบบ</button>
+                <button class="btn btn-dark" id="node-manage-btn"
+                    onclick="document.getElementById('node-modal').style.display='flex'; loadNodes();">⚙️
+                    จัดการสถานี</button>
+                <button class="btn btn-danger"
+                    onclick="sysConfirm('คุณต้องการออกจากระบบใช่หรือไม่?', logout, true)">ออกจากระบบ</button>
+                <button class="help-button" type="button" onclick="openHelp()" title="เปิดคู่มือและคำอธิบายสิทธิ์ผู้ใช้"
+                    aria-label="เปิดคู่มือและคำอธิบายสิทธิ์ผู้ใช้">?</button>
+            </div>
+        </div>
+
+        <div class="main-workspace">
+
+            <div class="panel panel-stretch">
+                <div class="panel-header" style="display: flex; justify-content: space-between;">
+                    <span>แผนผังห้องสื่อสารและบุคลากร</span>
+                    <button class="btn btn-primary btn-sm admin-room-control" id="create-channel-btn"
+                        onclick="document.getElementById('create-ch-modal').style.display='flex'">+ สร้างห้อง</button>
+                </div>
+                <div class="panel-content">
+                    <div id="spatial-topology" class="spatial-topology" aria-label="แผนผังเครือข่ายสถานีและห้องสื่อสาร">
+                        <div class="spatial-ring outer"></div>
+                        <div class="spatial-ring"></div>
+                        <div class="spatial-core"><strong>STATION</strong><small>รอเชื่อมต่อ</small></div>
+                    </div>
+                    <div id="room-display-area">
+                        <div style="text-align:center; color:var(--border-light); padding:50px;">--
+                            โปรดเลือกสถานีเครือข่าย --</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sticky-col workspace-log-column">
+                <div class="panel" style="flex-shrink: 0;">
+                    <div class="panel-header"
+                        style="justify-content: space-between; padding: 8px 14px; font-size: 0.85em;">
+                        <span>สถานะระบบ (SYSTEM STATUS)</span>
+                        <button class="btn btn-dark btn-sm" style="font-size: 1.2em; padding: 0px 8px;"
+                            onclick="toggleDropdown('menu-server')">⋮</button>
+                    </div>
+                    <div id="menu-server" class="dropdown-content">
+                        <button onclick="openBanList()">🚫 รายชื่อที่ถูกแบน (Ban List)</button>
+                        <button onclick="openServerSettings()">⚙️ ตั้งค่าขั้นสูง (Settings)</button>
+                        <button onclick="openServerPasswordModal()">🔑 เปลี่ยนรหัสผ่านเซิร์ฟเวอร์</button>
+                        <button onclick="openMumbleLogs()">📋 Mumble Server Logs</button>
+                        <button onclick="openRegisteredUsers()">👤 จัดการ Accounts</button>
+                        <button onclick="toggleDropdown('menu-server')"
+                            style="color: var(--text-muted); text-align: center;">ปิดเมนู</button>
+                    </div>
+                    <div class="panel-content" style="padding: 10px 14px;">
+
+                        <div style="margin-bottom: 10px; font-size: 0.85em; line-height: 1.6;">
+                            <div><span class="status-dot"></span> ฐานข้อมูล: ONLINE (WAL Mode)</div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                                <div><span class="status-dot" id="node-light"
+                                        style="background:#555; box-shadow:none;"></span> เซิร์ฟเวอร์: <span
+                                        id="node-text" style="color:var(--accent-warn);">IDLE</span></div>
+                                <button class="btn btn-danger btn-sm"
+                                    style="padding: 2px 8px; font-size: 0.75em; border-color: var(--red-dim); background: rgba(239,68,68,0.15);"
+                                    onclick="sysConfirm('อันตราย! ยืนยันการรีสตาร์ทเซิร์ฟเวอร์? ผู้ใช้ทั้งหมดจะหลุดการเชื่อมต่อชั่วคราว', restartServer, true)">⚠️
+                                    RESTART</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="panel panel-stretch" style="position: relative;">
+                    <div class="panel-header">
+                        <span>บันทึกเหตุการณ์ (COMMAND LOGS)</span>
+                        <button class="btn btn-dark btn-sm" style="font-size: 1.2em; padding: 0px 8px;"
+                            onclick="toggleDropdown('menu-logs')">⋮</button>
+                    </div>
+                    <div id="menu-logs" class="dropdown-content">
+                        <button onclick="openExportModal('logs')">📊 ส่งออกไฟล์ Excel (Logs ทั้งหมด)</button>
+                        <button onclick="openExportModal('user_logs')">📊 ส่งออกไฟล์ Excel (เฉพาะคนเข้า-ออก)</button>
+                        <button onclick="toggleDropdown('menu-logs')"
+                            style="color: var(--text-muted); text-align: center;">ปิดเมนู</button>
+                    </div>
+                    <div class="panel-content" style="padding: 12px; display: flex; flex-direction: column; flex: 1;">
+                        <div id="log-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sticky-col workspace-chat-column">
+
+                <div class="panel" style="flex-shrink: 0;">
+                    <div class="panel-header"
+                        style="padding: 8px 14px; font-size: 0.85em; display: flex; justify-content: space-between; align-items: center;">
+                        <span>ประกาศฉุกเฉิน (BROADCAST)</span>
+                        <button class="btn btn-dark btn-sm"
+                            style="font-size: 1.2em; padding: 0px 8px; background: transparent; border: none; color: var(--accent);"
+                            onclick="openTTSHistoryModal()" title="ดูประวัติการสั่ง AI">⋮</button>
+                    </div>
+<div class="panel-content" style="padding: 10px 14px; display: flex; flex-direction: column; gap: 12px;">
+                        
+                        <div style="display: flex; gap: 6px; width: 100%; align-items: center;">
+                            <select id="bc-channel" style="width: 85px; flex-shrink: 0; background: var(--bg-row); border: 1px solid var(--b1); color: var(--txt-hi); border-radius: 4px; padding: 4px 6px; font-size: 0.8em; outline: none; cursor: pointer;">
+                                <option value="all">ทุกห้อง</option>
+                                <option value="0"># Root</option>
+                            </select>
+                            
+                            <div style="flex: 1; position: relative; display: flex; flex-direction: column;">
+                                <input type="text" id="bc-input" placeholder="พิมพ์ข้อความ..." style="width: 100%; border-radius: 4px; padding: 4px 8px; font-size: 0.8em; border: 1px solid var(--b1); background: var(--bg-row); color: var(--txt-hi);" onkeypress="if(event.key === 'Enter') broadcast()">
+                                <div id="mic-visualizer" style="position: absolute; bottom: -4px; left: 0; width: 100%; height: 2px; background: transparent; display: none;">
+                                    <div id="mic-bar" style="width: 0%; height: 100%; background: var(--accent-green); transition: width 0.05s linear; border-radius: 2px; box-shadow: 0 0 5px var(--accent-green);"></div>
+                                </div>
+                            </div>
+
+                            <button id="ptt-btn" class="btn btn-dark" style="width: 32px; height: 32px; padding: 0; border-radius: 50%; border: 1px solid var(--b2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: 0.1s;"
+                                onmousedown="startMic()" onmouseup="stopMic()" onmouseleave="stopMic()" 
+                                ontouchstart="startMic()" ontouchend="stopMic()" title="กดค้างเพื่อพูดสด (LIVE PTT)">
+                                🎤
+                            </button>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-dark" style="padding: 3px 8px; font-size: 0.75em; border-color: rgba(56,189,248,0.4); color: var(--blue);" onclick="manageTTSBot('start')">วางบอท</button>
+                                <button class="btn btn-dark" style="padding: 3px 8px; font-size: 0.75em; border-color: rgba(239,68,68,0.4); color: var(--red);" onclick="manageTTSBot('stop')">ถอนบอท</button>
+                            </div>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-primary" style="padding: 3px 10px; font-size: 0.75em;" onclick="broadcast()">ส่งแชท</button>
+                                <button class="btn btn-blue" style="padding: 3px 10px; font-size: 0.75em;" onclick="ttsBroadcast()">AI พูด</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="panel panel-stretch" style="position: relative;">
+                    <div class="panel-header" style="color: var(--accent-blue);">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-weight: 800;">AI ถอดรหัสเสียง</span>
+                            <span id="ai-count-badge" class="ai-badge">0 ACTIVE</span>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn btn-danger btn-sm"
+                                style="background:var(--red-dim); color:#fff; padding: 4px 8px; font-size: 1.05em;"
+                                onclick="openKeywordAlerts()" title="ตาข่ายแมงมุม (ดูบันทึกและไฟล์เสียง)">🚨</button>
+                            <button class="btn btn-dark btn-sm" onclick="clearAILogs()" title="ล้างจอ"
+                                style="padding: 4px 8px; font-size: 1.05em;">🧹</button>
+                            <button class="btn btn-dark btn-sm" style="font-size: 1.2em; padding: 0px 8px;"
+                                onclick="toggleDropdown('menu-ai')">⋮</button>
+                        </div>
+                    </div>
+                    <div id="menu-ai" class="dropdown-content">
+                        <button onclick="openManageKeywords()">📝 จัดการคำศัพท์เฝ้าระวัง</button>
+                        <button onclick="configAutoBots()">⚙️ ตั้งค่าแผนส่งบอทอัตโนมัติ</button>
+                        <button onclick="openExportModal('alerts')">📊 ส่งออก Excel (ตาข่ายแมงมุม)</button>
+                        <button onclick="openExportModal('ai')">📊 ส่งออก Excel (แชท AI ทั้งหมด)</button>
+                        <button onclick="toggleDropdown('menu-ai')"
+                            style="color: var(--text-muted); text-align: center;">ปิดเมนู</button>
+                    </div>
+
+                    <div
+                        style="background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border-main); padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0;">
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn btn-primary btn-sm" onclick="manageAIBot('start')"
+                                style="background: var(--accent-green); color: #000; font-weight: bold;"
+                                title="ส่งไปห้อง Root">+ ส่งลงพื้นที่ (Root)</button>
+                            <button class="btn btn-primary btn-sm" onclick="manageAIBot('start_all')"
+                                style="background: var(--accent-blue); color: #000; font-weight: bold;"
+                                title="ส่งบอทเข้าทุกห้องที่มี">+ ส่งลงทุกห้อง</button>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="manageAIBot('stop')">⟲ รีสตาร์ทล้างบอท</button>
+                    </div>
+
+                    <div class="panel-content" style="display: flex; flex-direction: column; flex: 1; padding: 12px;">
+                        <div id="ai-terminal">
+                            <div style="color: var(--border-light);">[SYSTEM] AI Module initializing...</div>
+                            <div style="color: var(--border-light);">[SYSTEM] กรุณาเลือกสถานี และกด '+ ส่งลงพื้นที่'
+                                เพื่อดักฟัง...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="panel panel-stretch workspace-history-column" aria-label="ประวัติแชทและเสียงย้อนหลัง">
+                <div class="panel-header history-panel-header">
+                    <div><span>ประวัติแชทและเสียงย้อนหลัง</span><small>ค้นหา · ฟังเสียง · Bookmark · Incident · Export</small></div>
+                    <button class="btn btn-dark btn-sm" type="button" onclick="reloadHistoryView()">โหลดข้อมูลใหม่</button>
+                </div>
+                <iframe id="history-frame" title="ค้นหาแชทและเสียงย้อนหลัง" data-src="/chat-search?embedded=1" loading="lazy"></iframe>
+            </section>
+        </div>
+    </div>
+
+    <div id="export-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px; padding: 0;">
+            <div class="panel-header"><span>📊 ส่งออกข้อมูล (EXPORT DATA)</span></div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label class="form-label">ประเภทข้อมูล</label>
+                    <select id="export-type" style="width:100%; margin-bottom:15px;">
+                        <option value="logs">บันทึกเหตุการณ์ทั้งหมด (Command Logs)</option>
+                        <option value="user_logs">บันทึกคนเข้า-ออก (Join/Leave Logs)</option>
+                        <option value="ai">แชท AI ถอดรหัสเสียง (Transcripts)</option>
+                        <option value="alerts">ตาข่ายแมงมุม (Keyword Alerts)</option>
+                    </select>
+
+                    <label class="form-label">ตั้งแต่วันที่ (เริ่มต้น)</label>
+                    <input type="date" id="export-start"
+                        style="width:100%; margin-bottom:15px; background: var(--bg-dark); color: var(--txt-hi);">
+
+                    <label class="form-label">ถึงวันที่ (สิ้นสุด)</label>
+                    <input type="date" id="export-end"
+                        style="width:100%; margin-bottom:25px; background: var(--bg-dark); color: var(--txt-hi);">
+
+                    <div style="font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">* หากต้องการโหลดทั้งหมด
+                        ไม่ต้องเลือกวันที่ครับ</div>
+
+                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn btn-dark"
+                            onclick="document.getElementById('export-modal').style.display='none'">ยกเลิก</button>
+                        <button class="btn btn-primary" onclick="submitExport()">📥 ดาวน์โหลด Excel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="manage-keywords-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 500px; padding: 0;">
+            <div class="panel-header">
+                <span>📝 จัดการคำศัพท์เฝ้าระวัง</span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('manage-keywords-modal').style.display='none'">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <div class="form-group"
+                    style="background:var(--bg-dark); padding:12px; border-radius:6px; border:1px solid var(--border-main); margin-bottom:15px;">
+                    <label class="form-label">เพิ่มคำศัพท์เฝ้าระวังใหม่</label>
+                    <div class="input-row">
+                        <input type="text" id="new-keyword-input" placeholder="เช่น ฉุกเฉิน, ยิง, โจร...">
+                        <button class="btn btn-primary" onclick="submitAddKeyword()">เพิ่มคำศัพท์</button>
+                    </div>
+                </div>
+                <div style="font-size:0.85em; color:var(--text-muted); margin-bottom:8px;">คำศัพท์ที่ระบบกำลังเฝ้าระวัง:
+                </div>
+                <div id="keywords-list"
+                    style="max-height:250px; overflow-y:auto; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span style="color:var(--text-muted);">กำลังโหลด...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="keyword-alerts-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 850px; padding: 0;">
+            <div class="panel-header">
+                <span>🚨 ศูนย์แจ้งเตือนตาข่ายแมงมุม (KEYWORD ALERTS)</span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('keyword-alerts-modal').style.display='none'">ปิดหน้าต่าง</button>
+            </div>
+            <div class="panel-content">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="alert-search-input" style="flex:1;"
+                        placeholder="ค้นหาจาก ชื่อ, ข้อความ, หรือ คำที่เฝ้าระวัง..."
+                        onkeypress="if(event.key === 'Enter') loadKeywordAlerts()">
+                    <button class="btn btn-primary" onclick="loadKeywordAlerts()">🔍 ค้นหา</button>
+                    <button class="btn btn-warning" onclick="clearAlertAudio()"
+                        title="ลบเฉพาะไฟล์เสียง แต่เก็บข้อมูลวันที่และข้อความไว้">🗑️ ลบเฉพาะไฟล์เสียง</button>
+                    <button class="btn btn-danger" onclick="clearAllAlerts()" title="ลบประวัติและไฟล์เสียงทั้งหมด">🚨
+                        ล้างประวัติทั้งหมด</button>
+                </div>
+                <table class="user-table" style="margin-top: 10px;">
+                    <thead>
+                        <tr
+                            style="border-bottom: 1px solid var(--border-main); color: var(--text-muted); text-align: left;">
+                            <th style="padding:10px; width: 150px;">วัน/เวลา</th>
+                            <th style="padding:10px; width: 100px;">ผู้พูด</th>
+                            <th style="padding:10px; width: 120px;">คำที่ตรวจพบ</th>
+                            <th style="padding:10px;">ข้อความเต็ม & หลักฐานเสียง</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alerts-list-body">
+                        <tr>
+                            <td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">
+                                กำลังโหลดข้อมูล...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-ch-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 450px; padding: 0;">
+            <div class="panel-header"><span>สร้างห้องสื่อสาร (CREATE CHANNEL)</span></div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label class="form-label">ชื่อห้องใหม่</label>
+                    <input type="text" id="new-ch-input" placeholder="พิมพ์ชื่อห้องที่ต้องการ..."
+                        style="width: 100%; box-sizing: border-box; margin-bottom: 15px;">
+                    <label class="form-label">หมวดหมู่ (เลือกห้องหลักถ้ามี)</label>
+                    <select id="parent-ch-select" style="width: 100%; box-sizing: border-box; margin-bottom: 25px;">
+                        <option value="0">-- สร้างเป็นห้องหลัก --</option>
+                    </select>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn btn-dark"
+                            onclick="document.getElementById('create-ch-modal').style.display='none'">ยกเลิก</button>
+                        <button class="btn btn-primary" onclick="submitCreateChannel()">ยืนยันสร้างห้อง</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="autobot-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 500px; padding: 0;">
+            <div class="panel-header"><span>⚙️ ตั้งค่าหน่วยซีล AI (AUTO-START)</span></div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label class="form-label"
+                        style="font-size: 0.9em; font-weight: bold; color: var(--accent-green);">โหมดการทำงานเมื่อเปิดระบบใหม่</label>
+                    <select id="autobot-mode-select" style="width: 100%; margin-bottom: 15px; cursor: pointer;"
+                        onchange="toggleAutobotChannelList()">
+                        <option value="off">🔴 ปิดระบบ (OFF)</option>
+                        <option value="all">🟢 ลงพื้นที่ทุกห้อง (1 บอท/ห้อง)</option>
+                        <option value="specific">🟡 เลือกห้องแบบเจาะจง (SPECIFIC)</option>
+                    </select>
+
+                    <div id="autobot-channel-list-container"
+                        style="display: none; max-height: 200px; overflow-y: auto; background: var(--bg-dark); padding: 12px; border-radius: 4px; border: 1px solid var(--b1);">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
+                        <button class="btn btn-dark"
+                            onclick="document.getElementById('autobot-modal').style.display='none'">ยกเลิก</button>
+                        <button class="btn btn-primary" onclick="submitAutoBots()">บันทึกการตั้งค่า</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="node-modal" class="modal-overlay">
+        <div class="modal-content node-modal-content" style="width: 800px;">
+            <div class="panel-header" style="border-bottom: none; padding-bottom: 0;">
+                <span>รายชื่อสถานีเครือข่าย (NODES & FLEET COMMAND)</span>
+                <button class="btn btn-danger btn-sm" onclick="document.getElementById('node-modal').style.display='none'">ปิดหน้าต่าง</button>
+            </div>
+            <div class="panel-content">
+                
+                <div class="node-fleet-create" style="margin-bottom: 15px; padding: 15px; border: 1px dashed var(--accent-green); background: rgba(76,221,122,0.05); border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="node-fleet-copy">
+                        <span style="font-size: 1.05em; font-weight: bold; color: var(--accent-green);">⚙️ ระบบสร้างสถานีอัตโนมัติ</span><br>
+                        <span style="font-size: 0.8em; color: var(--text-muted);">ระบบจะคำนวณและรันเลขพอร์ตสำหรับ MikroTik ให้อัตโนมัติ</span>
+                    </div>
+                    <div class="node-fleet-actions" style="display: flex; gap: 8px;">
+                        <input type="text" id="fleet-node-name" placeholder="ชื่อสถานี..." style="padding: 6px 12px; border-radius: 4px; border: 1px solid var(--accent-green); background: var(--bg-dark);">
+                        <button class="btn btn-primary" onclick="deployDockerServer()">สร้างสถานีใหม่</button>
+                        </div>
+                </div>
+
+                <details class="node-manual-details" style="margin-bottom: 15px; cursor: pointer;">
+                    <summary style="font-size: 0.85em; color: var(--text-muted);">➕ หรือเพิ่มสถานีด้วยตัวเองแบบ Manual (คลิกเพื่อขยาย)</summary>
+                    <div class="form-group node-manual-form" style="background: var(--bg-dark); padding: 15px; border-radius: 6px; border: 1px solid var(--border-main); margin-top: 10px; cursor: default;">
+                        <div class="input-row node-form-row" style="margin-bottom: 10px;">
+                            <input type="hidden" id="node-id">
+                            <input type="text" id="node-name" placeholder="ชื่อสถานี">
+                            <input type="text" id="node-ip" placeholder="IP Address (แนะนำ 127.0.0.1)">
+                        </div>
+                        <div class="input-row node-form-row node-port-row">
+                            <input type="text" id="node-port" placeholder="พอร์ตบอท" value="64738" style="width: 80px; flex: none;">
+                            <input type="text" id="node-ice-port" placeholder="พอร์ต ICE" value="6502" style="width: 80px; flex: none;">
+                            <input type="text" id="node-password" placeholder="รหัสเข้า (ถ้ามี)">
+                            <button class="btn btn-dark" id="node-save-btn" onclick="saveNode()">บันทึก Manual</button>
+                        </div>
+                    </div>
+                </details>
+
+                <table class="user-table node-list-table" style="margin-top: 10px;">
+                    <thead><tr style="border-bottom: 1px solid var(--border-main); color: var(--text-muted);"><th style="padding:10px;">ชื่อสถานี</th><th style="padding:10px;">ไอพี</th><th>พอร์ตการเชื่อมต่อ</th><th style="text-align:right;">จัดการ</th></tr></thead>
+                    <tbody id="node-list-body"></tbody>
+                </table>
+                
+                <div class="node-maintenance" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--b1); display: flex; justify-content: space-between; align-items: center; background: rgba(76,221,122,0.05); border-radius: 6px; padding: 12px;">
+                    <div>
+                        <span style="font-size: 0.9em; font-weight: bold; color: var(--accent-green);">💾 ระบบซ่อมบำรุงฐานข้อมูล</span><br>
+                        <span style="font-size: 0.75em; color: var(--text-muted);">สำรองและกู้คืน (Backup / Restore) ฐานข้อมูลทั้งหมด</span>
+                    </div>
+                    <div class="node-maintenance-actions" style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary btn-sm" onclick="window.location.href='/api/maintenance/backup'">📥 BACKUP สำรองข้อมูล</button>
+                        <label class="btn btn-danger btn-sm" style="cursor: pointer; margin: 0; background: var(--red-dim);">
+                            📤 RESTORE กู้คืนข้อมูล
+                            <input type="file" style="display: none;" accept=".zip" onchange="restoreSystem(this)">
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="ban-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 600px;">
+            <div class="panel-header">
+                <span>🚫 รายชื่อที่ถูกแบน (BAN LIST)</span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('ban-modal').style.display='none'">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <div id="ban-list-content" style="max-height:400px; overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dm-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 450px; padding: 0;">
+            <div class="panel-header"><span>💬 ส่งข้อความถึงผู้ใช้</span></div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label class="form-label">ข้อความ</label>
+                    <input type="text" id="dm-message" placeholder="พิมพ์ข้อความ..."
+                        style="width:100%; box-sizing:border-box; margin-bottom:15px;">
+                    <input type="hidden" id="dm-session">
+                    <input type="hidden" id="dm-name">
+                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn btn-dark"
+                            onclick="document.getElementById('dm-modal').style.display='none'">ยกเลิก</button>
+                        <button class="btn btn-blue" onclick="submitDM()">ส่งข้อความ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rename-ch-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px; padding: 0;">
+            <div class="panel-header"><span>✏️ เปลี่ยนชื่อห้อง</span></div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label class="form-label">ชื่อใหม่</label>
+                    <input type="text" id="rename-ch-input"
+                        style="width:100%; box-sizing:border-box; margin-bottom:15px;">
+                    <input type="hidden" id="rename-ch-id">
+                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn btn-dark"
+                            onclick="document.getElementById('rename-ch-modal').style.display='none'">ยกเลิก</button>
+                        <button class="btn btn-primary" onclick="submitRenameChannel()">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="server-settings-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 550px; padding: 0;">
+            <div class="panel-header">
+                <span>⚙️ ตั้งค่าขั้นสูง (SERVER SETTINGS)</span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('server-settings-modal').style.display='none'">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label class="form-label">ข้อความต้อนรับ (Welcome Text)</label>
+                    <textarea id="welcome-text-input" placeholder="HTML หรือข้อความต้อนรับ..."
+                        style="resize:vertical; min-height:70px; width:100%; box-sizing:border-box;"></textarea>
+                    <button class="btn btn-primary" style="margin-top:8px;"
+                        onclick="submitWelcomeText()">บันทึกข้อความต้อนรับ</button>
+                </div>
+                <hr style="border:none; border-top:1px dashed var(--border-main); margin:15px 0;">
+                <div class="form-group">
+                    <label class="form-label">จำนวนผู้ใช้สูงสุด (Max Users)</label>
+                    <div class="input-row">
+                        <input type="number" id="max-users-input" placeholder="เช่น 100" min="1" max="9999">
+                        <button class="btn btn-warning" onclick="submitMaxUsers()">อัปเดต</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="server-password-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="server-password-title">
+        <div class="modal-content" style="width: 430px; padding: 0;">
+            <div class="panel-header">
+                <span id="server-password-title">🔑 เปลี่ยนรหัสผ่านเซิร์ฟเวอร์</span>
+                <button class="btn btn-danger btn-sm" onclick="closeServerPasswordModal()">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="new-srv-pass">รหัสผ่านใหม่</label>
+                    <input type="password" id="new-srv-pass" placeholder="ตั้งรหัสผ่านใหม่..." autocomplete="new-password"
+                        style="width:100%; box-sizing:border-box;" onkeydown="if(event.key === 'Enter') changeServerPassword()">
+                    <div style="color:var(--text-muted); font-size:.8em; line-height:1.5; margin:10px 0 16px;">เว้นว่างเพื่อปลดรหัสผ่านเซิร์ฟเวอร์ ผู้ใช้ที่เชื่อมต่ออยู่จะต้องใช้รหัสใหม่เมื่อเชื่อมต่อครั้งถัดไป</div>
+                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn btn-dark" onclick="closeServerPasswordModal()">ยกเลิก</button>
+                        <button class="btn btn-warning" onclick="changeServerPassword()">บันทึกรหัสผ่าน</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rename-user-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px; padding: 0;">
+            <div class="panel-header"><span>✏️ เปลี่ยนชื่อผู้ใช้</span></div>
+            <div class="panel-content">
+                <div class="form-group">
+                    <label class="form-label">ชื่อใหม่</label>
+                    <input type="text" id="rename-user-input"
+                        style="width:100%; box-sizing:border-box; margin-bottom:15px;">
+                    <input type="hidden" id="rename-user-session">
+                    <div style="color:var(--text-muted); font-size:0.8em; margin-bottom:15px;">* เปลี่ยนชื่อเฉพาะ
+                        session ปัจจุบัน ไม่ถาวร</div>
+                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn btn-dark"
+                            onclick="document.getElementById('rename-user-modal').style.display='none'">ยกเลิก</button>
+                        <button class="btn btn-primary" onclick="submitRenameUser()">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="channel-settings-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 450px; padding: 0;">
+            <div class="panel-header">
+                <span>⚙️ ตั้งค่าห้อง: <span id="ch-settings-name"></span></span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('channel-settings-modal').style.display='none'">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <input type="hidden" id="ch-settings-id">
+                <div class="form-group">
+                    <label class="form-label">รหัสผ่านห้อง (ว่าง = ไม่ล็อก)</label>
+                    <div class="input-row">
+                        <input type="text" id="ch-password-input" placeholder="ตั้งรหัสผ่านห้อง...">
+                        <button class="btn btn-warning" onclick="submitChannelPassword()">ตั้งค่า</button>
+                    </div>
+                </div>
+                <hr style="border:none; border-top:1px dashed var(--border-main); margin:15px 0;">
+                <div class="form-group">
+                    <label class="form-label">จำนวนผู้ใช้สูงสุดในห้อง (0 = ไม่จำกัด)</label>
+                    <div class="input-row">
+                        <input type="number" id="ch-maxusers-input" placeholder="เช่น 10" min="0">
+                        <button class="btn btn-warning" onclick="submitChannelMaxUsers()">ตั้งค่า</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mumble-logs-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 700px;">
+            <div class="panel-header">
+                <span>📋 Mumble Server Logs</span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('mumble-logs-modal').style.display='none'">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <div id="mumble-logs-content"
+                    style="max-height:450px; overflow-y:auto; font-family:monospace; font-size:0.82em; background:var(--bg-dark); padding:10px; border-radius:4px; border:1px solid var(--border-main);">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="registered-users-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 600px;">
+            <div class="panel-header">
+                <span>👤 จัดการ Accounts</span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('registered-users-modal').style.display='none'">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <div class="form-group"
+                    style="background:var(--bg-dark); padding:12px; border-radius:6px; border:1px solid var(--border-main); margin-bottom:15px;">
+                    <label class="form-label">สร้าง Account ใหม่</label>
+                    <div class="input-row">
+                        <input type="text" id="reg-username" placeholder="ชื่อผู้ใช้">
+                        <input type="password" id="reg-password" placeholder="รหัสผ่าน">
+                        <button class="btn btn-primary" onclick="submitRegisterUser()">สร้าง</button>
+                    </div>
+                </div>
+                <div id="registered-users-list" style="max-height:350px; overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-users-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 760px; max-width: calc(100vw - 24px);">
+            <div class="panel-header">
+                <span>👥 จัดการผู้ใช้ระบบและสิทธิ์</span>
+                <button class="btn btn-danger btn-sm"
+                    onclick="document.getElementById('admin-users-modal').style.display='none'">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <div class="form-group"
+                    style="background:var(--bg-dark); padding:12px; border-radius:6px; border:1px solid var(--border-main); margin-bottom:15px;">
+                    <label class="form-label">เพิ่มบัญชีผู้ใช้</label>
+                    <div style="color:var(--text-muted); font-size:0.82em; margin-bottom:8px;">สิทธิ์ค้นหาย้อนหลัง: Admin ดูได้ทุกห้อง ส่วน User ดูได้เฉพาะห้องที่เลือกในรายการของแต่ละบัญชี</div>
+                    <div class="input-row" style="flex-wrap:wrap;">
+                        <input type="text" id="app-user-username" placeholder="Username (อย่างน้อย 3 ตัวอักษร)" autocomplete="off">
+                        <input type="password" id="app-user-password" placeholder="Password (อย่างน้อย 8 ตัวอักษร)" autocomplete="new-password">
+                        <select id="app-user-role" style="min-width:120px;">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="createAppUser()">สร้างบัญชี</button>
+                    </div>
+                </div>
+                <div id="app-users-list" style="max-height:430px; overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tts-history-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 500px; padding: 0;">
+            <div class="panel-header">
+                <span>🕒 ประวัติคำสั่งเสียง (AI โทรโข่ง)</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-warning btn-sm" onclick="clearTTSHistory()">🗑️ ล้างประวัติ</button>
+                    <button class="btn btn-danger btn-sm"
+                        onclick="document.getElementById('tts-history-modal').style.display='none'">ปิด</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div id="tts-history-list"
+                    style="max-height:350px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentId = null;
+        let draggedSession = null;
+        let currentUser = null;
+
+        function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+        }
+        function setCommandView(view, updateUrl = true) {
+            const allowed = ['spatial', 'chat', 'log', 'history'];
+            const next = allowed.includes(view) ? view : 'spatial';
+            document.body.dataset.commandView = next;
+            localStorage.setItem('roip-command-view', next);
+            document.querySelectorAll('[data-command-view]').forEach(button => {
+                button.classList.toggle('active', button.dataset.commandView === next);
+                button.setAttribute('aria-pressed', String(button.dataset.commandView === next));
+            });
+            if (next === 'history') {
+                const frame = document.getElementById('history-frame');
+                if (frame && !frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src);
+            }
+            if (updateUrl) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('view', next);
+                history.replaceState({}, '', url);
+            }
+        }
+        function reloadHistoryView() {
+            const frame = document.getElementById('history-frame');
+            if (!frame) return;
+            frame.setAttribute('src', frame.getAttribute('src') || frame.dataset.src);
+        }
+        function renderSpatialTopology(channels, users) {
+            const stage = document.getElementById('spatial-topology');
+            if (!stage) return;
+            stage.innerHTML = '<div class="spatial-ring outer"></div><div class="spatial-ring"></div>';
+            const core = document.createElement('div');
+            core.className = 'spatial-core';
+            const stationName = document.getElementById('current-node-name')?.textContent || 'STATION';
+            core.innerHTML = `<strong title="${escapeHtml(stationName)}">${escapeHtml(stationName)}</strong><small>${users.length} ONLINE</small>`;
+            stage.appendChild(core);
+            channels.slice(0, 6).forEach((channel, index) => {
+                const channelUsers = users.filter(user => Number(user.channel_id) === Number(channel.id));
+                const node = document.createElement('button');
+                const isAlert = /ฉุกเฉิน|alert|incident/i.test(channel.name || '');
+                node.type = 'button';
+                node.className = `spatial-channel-node spatial-node-${index}${channelUsers.length ? ' has-users' : ''}${isAlert ? ' is-alert' : ''}`;
+                node.innerHTML = `<strong># ${escapeHtml(channel.name)}</strong><small>${channelUsers.length} คน · CH ${channel.id}</small>`;
+                node.addEventListener('click', () => document.getElementById(`room-card-${channel.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+                stage.appendChild(node);
+            });
+            requestAnimationFrame(() => renderSpatialLinks(stage));
+        }
+        function renderSpatialLinks(stage) {
+            stage.querySelectorAll('.spatial-link').forEach(link => link.remove());
+            const stageRect = stage.getBoundingClientRect();
+            const coreRect = stage.querySelector('.spatial-core')?.getBoundingClientRect();
+            if (!coreRect || !stageRect.width || !stageRect.height) return;
+            const startX = coreRect.left - stageRect.left + coreRect.width / 2;
+            const startY = coreRect.top - stageRect.top + coreRect.height / 2;
+            stage.querySelectorAll('.spatial-channel-node').forEach((node, index) => {
+                const nodeRect = node.getBoundingClientRect();
+                const endX = nodeRect.left - stageRect.left + nodeRect.width / 2;
+                const endY = nodeRect.top - stageRect.top + nodeRect.height / 2;
+                const distanceX = endX - startX;
+                const distanceY = endY - startY;
+                const link = document.createElement('span');
+                link.className = 'spatial-link';
+                link.style.left = `${startX}px`;
+                link.style.top = `${startY}px`;
+                link.style.width = `${Math.hypot(distanceX, distanceY)}px`;
+                link.style.transform = `rotate(${Math.atan2(distanceY, distanceX) * 180 / Math.PI}deg)`;
+                link.style.setProperty('--signal-delay', `${-index * .46}s`);
+                stage.insertBefore(link, stage.firstChild);
+            });
+        }
+        (function initializeCommandView() {
+            const queryView = new URLSearchParams(window.location.search).get('view');
+            setCommandView(queryView || localStorage.getItem('roip-command-view') || 'spatial', false);
+        })();
+        function applyPermissions(user) {
+            currentUser = user || null;
+            const admin = isAdmin();
+            document.body.dataset.role = admin ? 'admin' : 'user';
+            const username = document.getElementById('current-username');
+            if (username) username.innerText = user ? `${user.username} (${admin ? 'Admin' : 'User'})` : '-';
+            const adminButton = document.getElementById('admin-users-btn');
+            if (adminButton) adminButton.style.display = admin ? 'inline-flex' : 'none';
+            const nodeButton = document.getElementById('node-manage-btn');
+            if (nodeButton) nodeButton.style.display = admin ? 'inline-flex' : 'none';
+            const createButton = document.getElementById('create-channel-btn');
+            if (createButton) createButton.style.display = admin ? 'inline-flex' : 'none';
+            document.querySelectorAll('.admin-room-control').forEach(el => { el.style.display = admin ? '' : 'none'; });
+            document.querySelectorAll('.admin-only-control').forEach(el => { el.style.display = admin ? '' : 'none'; });
+        }
+
+        // --- ✨ ระบบประมวลผลไมค์สด (Live Web-Mic PTT) ---
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let audioContext;
+        let analyser;
+        let micStream;
+
+        async function startMic() {
+            if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อนใช้ระบบไมค์สั่งการ (PTT)!");
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                micStream = stream;
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    sendVoice(audioBlob);
+                    stream.getTracks().forEach(track => track.stop()); // ปิดไมค์หลังใช้เสร็จ
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                document.getElementById('ptt-btn').classList.add('recording');
+                document.getElementById('mic-visualizer').style.display = 'block';
+
+                // ระบบวัดระดับเสียง (Visualizer)
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 256;
+                drawMicLevel();
+            } catch (err) {
+                sysAlert("การเข้าถึงไมโครโฟนถูกปฏิเสธ หรือเบราว์เซอร์ไม่รองรับ: " + err.message);
+            }
+        }
+
+        function drawMicLevel() {
+            if (!isRecording) return;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let avg = sum / dataArray.length;
+            document.getElementById('mic-bar').style.width = Math.min(100, avg * 2) + '%';
+            requestAnimationFrame(drawMicLevel);
+        }
+
+        function stopMic() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById('ptt-btn').classList.remove('recording');
+                document.getElementById('mic-visualizer').style.display = 'none';
+                if (audioContext) audioContext.close();
+            }
+        }
+
+        function sendVoice(blob) {
+            if (!currentId) return;
+            const formData = new FormData();
+            formData.append('audio', blob, 'voice.webm');
+            formData.append('server_id', currentId);
+
+            fetch('/api/web-mic/upload', { method: 'POST', body: formData })
+                .then(r => r.json()).then(d => {
+                    if (d.status === 'success') addLog(`✅ ส่งเสียงสด PTT เข้าสถานีเรียบร้อย!`);
+                    else sysAlert("เกิดข้อผิดพลาดในการส่งเสียง: " + d.message);
+                });
+        }
+
+        // --- ✨ ระบบกู้คืนฐานข้อมูล (Restore System) ---
+        function restoreSystem(inputElement) {
+            if (!inputElement.files || inputElement.files.length === 0) return;
+            const file = inputElement.files[0];
+
+            sysConfirm('คำเตือนระดับสูง! ⚠️ การ Restore จะนำข้อมูลเก่ามาเขียนทับข้อมูลปัจจุบันทั้งหมด (รวมถึงรหัสผ่านและประวัติ) ยืนยันการกระทำใช่หรือไม่?', () => {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/api/maintenance/restore', { method: 'POST', body: formData })
+                    .then(r => r.json()).then(d => {
+                        if (d.status === 'success') {
+                            sysAlert("✅ กู้คืนข้อมูลสำเร็จ ระบบจะทำการรีสตาร์ทตัวเองใน 3 วินาที...");
+                            setTimeout(() => location.reload(), 3000);
+                        } else { sysAlert("❌ เกิดข้อผิดพลาด: " + d.message); }
+                    });
+            }, true);
+            inputElement.value = ''; // รีเซ็ต input
+        }
+
+        function toggleDropdown(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function openHelp() {
+            const modal = document.getElementById('help-modal');
+            modal.style.display = 'flex';
+            const closeButton = modal.querySelector('.btn-danger');
+            if (closeButton) closeButton.focus();
+        }
+
+        function closeHelp() {
+            document.getElementById('help-modal').style.display = 'none';
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                const help = document.getElementById('help-modal');
+                if (help && help.style.display === 'flex') closeHelp();
+            }
+        });
+
+        function openExportModal(defaultType = 'logs') {
+            if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีเครือข่ายก่อนดึงรายงาน");
+            document.getElementById('export-type').value = defaultType;
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('export-start').value = today;
+            document.getElementById('export-end').value = today;
+            document.getElementById('export-modal').style.display = 'flex';
+            document.getElementById('menu-logs').style.display = 'none';
+            document.getElementById('menu-ai').style.display = 'none';
+        }
+
+        function submitExport() {
+            const type = document.getElementById('export-type').value;
+            const start = document.getElementById('export-start').value;
+            const end = document.getElementById('export-end').value;
+            let url = `/api/export/${type}/${currentId}?`;
+            if (start) url += `start=${start}&`;
+            if (end) url += `end=${end}`;
+            window.location.href = url;
+            document.getElementById('export-modal').style.display = 'none';
+            addLog(`📥 สั่งดาวน์โหลดฐานข้อมูล ${type.toUpperCase()} (ตั้งแต่ ${start || 'ทั้งหมด'} ถึง ${end || 'ทั้งหมด'})`);
+        }
+
+        function openManageKeywords() {
+            toggleDropdown('menu-ai');
+            document.getElementById('manage-keywords-modal').style.display = 'flex';
+            loadKeywords();
+        }
+
+        function loadKeywords() {
+            fetch('/api/keywords').then(r => r.json()).then(data => {
+                const list = document.getElementById('keywords-list'); list.innerHTML = '';
+                if (data.length === 0) { list.innerHTML = '<span style="color:var(--text-muted);">ยังไม่มีคำศัพท์เฝ้าระวัง</span>'; return; }
+                data.forEach(k => {
+                    list.innerHTML += `<div style="background: rgba(229,57,53,0.15); border: 1px solid var(--red-dim); padding: 4px 10px; border-radius: 4px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff8a8a; font-weight: bold;">${k.word}</span><button style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1em;" onclick="deleteKeyword(${k.id})" title="ลบคำนี้">&times;</button></div>`;
+                });
+            });
+        }
+
+        function submitAddKeyword() {
+            const input = document.getElementById('new-keyword-input');
+            if (!input.value.trim()) return sysAlert("โปรดพิมพ์คำที่ต้องการ");
+            fetch('/api/keywords', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ word: input.value }) }).then(r => r.json()).then(d => { if (d.status === 'success') { input.value = ''; loadKeywords(); } else { sysAlert("เพิ่มไม่สำเร็จ: " + (d.error || "")); } });
+        }
+
+        function deleteKeyword(id) { fetch(`/api/keywords/${id}`, { method: 'DELETE' }).then(() => loadKeywords()); }
+
+        function openKeywordAlerts() {
+            document.getElementById('keyword-alerts-modal').style.display = 'flex';
+            document.getElementById('alert-search-input').value = '';
+            loadKeywordAlerts();
+        }
+
+        function loadKeywordAlerts() {
+            const search = document.getElementById('alert-search-input').value;
+            fetch(`/api/alerts?search=${encodeURIComponent(search)}`).then(r => r.json()).then(data => {
+                const body = document.getElementById('alerts-list-body');
+                const currentNodeName = document.getElementById('current-node-name').innerText;
+                const currentData = data.filter(r => r.server_name === currentNodeName);
+                if (currentData.length === 0) { body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">ไม่พบประวัติการแจ้งเตือนของสถานีนี้</td></tr>'; return; }
+                body.innerHTML = currentData.map(r => {
+                    const safeUser = r.user ? r.user.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                    const safeKeyword = r.keyword ? r.keyword.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                    const safeMessage = r.message ? r.message.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                    return `<tr class="user-row"><td class="user-cell" style="color:var(--text-muted); font-family:var(--mono);">${r.time}</td><td class="user-cell"><strong style="color:var(--txt-hi);">${safeUser}</strong></td><td class="user-cell"><span style="background:rgba(229,57,53,0.2); color:#ff8a8a; padding:2px 6px; border-radius:3px; border:1px solid var(--red-dim); font-weight:bold;">${safeKeyword}</span></td><td class="user-cell" style="color:var(--txt);">${safeMessage}${r.audio_file ? `<br><audio controls src="/static/records/${r.audio_file}" preload="none" style="height:30px; margin-top:5px;"></audio>` : ''}</td></tr>`;
+                }).join('');
+            });
+        }
+
+        function clearAlertAudio() { sysConfirm('ต้องการลบไฟล์เสียงทั้งหมดเพื่อคืนพื้นที่เซิร์ฟเวอร์ใช่หรือไม่?', () => { fetch('/api/alerts/clear_audio', { method: 'POST' }).then(() => { sysAlert("ลบไฟล์เสียงอัดเรียบร้อย"); loadKeywordAlerts(); }); }); }
+        function clearAllAlerts() { sysConfirm('ต้องการล้างประวัติการแจ้งเตือนทั้งหมด รวมถึงทำลายไฟล์เสียงทั้งหมดใช่หรือไม่?', () => { fetch('/api/alerts/clear_all', { method: 'POST' }).then(() => { sysAlert("ล้างประวัติเรียบร้อย"); loadKeywordAlerts(); }); }, true); }
+
+        function configAutoBots() {
+            if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานเครือข่ายก่อนตั้งค่าบอท!");
+            toggleDropdown('menu-ai');
+            fetch(`/api/server/${currentId}`).then(r => r.json()).then(data => {
+                const config = data.server.autobot_config || { mode: 'off', channels: [] };
+                const channels = data.status.channels || [];
+                document.getElementById('autobot-mode-select').value = config.mode;
+                let html = `<label style="display:flex; align-items:center; gap:8px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" class="autobot-ch-cb" value="0" ${config.channels.includes(0) ? 'checked' : ''} style="flex:none;"> <span style="color:var(--txt-hi);"># Root (ห้องหลัก)</span></label>`;
+                channels.forEach(c => {
+                    if (parseInt(c.id) !== 0) html += `<label style="display:flex; align-items:center; gap:8px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" class="autobot-ch-cb" value="${c.id}" ${config.channels.includes(c.id) ? 'checked' : ''} style="flex:none;"> <span style="color:var(--txt-hi);"># ${c.name}</span></label>`;
+                });
+                document.getElementById('autobot-channel-list-container').innerHTML = html;
+                toggleAutobotChannelList();
+                document.getElementById('autobot-modal').style.display = 'flex';
+            });
+        }
+
+        function toggleAutobotChannelList() { document.getElementById('autobot-channel-list-container').style.display = document.getElementById('autobot-mode-select').value === 'specific' ? 'block' : 'none'; }
+        function submitAutoBots() {
+            const mode = document.getElementById('autobot-mode-select').value;
+            let channels = [];
+            if (mode === 'specific') { document.querySelectorAll('.autobot-ch-cb:checked').forEach(cb => { channels.push(parseInt(cb.value)); }); if (channels.length === 0) return sysAlert("โปรดติ๊กเลือกอย่างน้อย 1 ห้อง หรือเปลี่ยนโหมดเป็น 'ปิดระบบ' ครับ"); }
+            fetch(`/api/server/${currentId}/autobots`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: mode, channels: channels }) }).then(() => { document.getElementById('autobot-modal').style.display = 'none'; addLog(`⚙️ อัปเดตแผนส่งหน่วยซีล (Auto-Start) เรียบร้อย!`); sysAlert(`บันทึกแผนปฏิบัติการเรียบร้อย!<br>บอทจะเดินเข้าห้องเป้าหมายอัตโนมัติเมื่อเปิดระบบครั้งถัดไปครับ!`); });
+        }
+
+        function sysAlert(msg) { document.getElementById('sys-modal-title').innerText = "SYSTEM NOTIFICATION"; document.getElementById('sys-modal-title').style.color = "var(--accent-blue)"; document.getElementById('sys-modal-msg').innerHTML = msg; document.getElementById('sys-modal-btns').innerHTML = `<button class="btn btn-primary" onclick="closeSysModal()">รับทราบ</button>`; document.getElementById('sys-modal').style.display = 'flex'; }
+        function sysConfirm(msg, callback, isDanger = false) { document.getElementById('sys-modal-title').innerText = isDanger ? "DANGER ZONE - CONFIRMATION REQUIRED" : "COMMAND CONFIRMATION"; document.getElementById('sys-modal-title').style.color = isDanger ? "var(--accent-red)" : "var(--accent-warn)"; document.getElementById('sys-modal-msg').innerHTML = msg; window.currentConfirmCallback = callback; document.getElementById('sys-modal-btns').innerHTML = `<button class="btn ${isDanger ? "btn-danger" : "btn-warning"}" onclick="executeSysConfirm()">ยืนยัน (CONFIRM)</button><button class="btn btn-dark" onclick="closeSysModal()">ยกเลิก (CANCEL)</button>`; document.getElementById('sys-modal').style.display = 'flex'; }
+        function closeSysModal() { document.getElementById('sys-modal').style.display = 'none'; }
+        function executeSysConfirm() { closeSysModal(); if (window.currentConfirmCallback) window.currentConfirmCallback(); }
+
+        window.onload = function () {
+            fetch('/api/session/check').then(res => res.json()).then(data => {
+                if (data.logged_in && data.user) {
+                    applyPermissions(data.user);
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'flex';
+                    loadNodes();
+                }
+            }).catch(() => { });
+        };
+
+        function authenticate() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!username || !password) return sysAlert("กรุณากรอก Username และ Password");
+            fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) }).then(r => r.json()).then(d => { if (d.status === 'success') { location.reload(); } else { sysAlert(d.error || "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); document.getElementById('login-password').value = ''; } });
+        }
+
+        function logout() { fetch('/api/logout', { method: 'POST' }).then(() => location.reload()); }
+
+        function clearNodeForm() { document.getElementById('node-id').value = ''; document.getElementById('node-name').value = ''; document.getElementById('node-ip').value = ''; document.getElementById('node-port').value = '64738'; document.getElementById('node-ice-port').value = '6502'; document.getElementById('node-password').value = ''; document.getElementById('node-save-btn').innerText = 'เพิ่ม'; }
+
+        function loadNodes() {
+            fetch('/api/servers').then(res => res.json()).then(data => {
+                const list = document.getElementById('node-list-body'); list.innerHTML = '';
+                data.forEach(n => {
+                    const p = n.port || 64738; const i = n.ice_port || 6502; const safePass = (n.password || '').replace(/'/g, "\\'");
+                    list.innerHTML += `<tr class="user-row"><td class="user-cell" data-label="สถานี"><strong>${n.name}</strong><br>${n.password ? '<span style="color:var(--accent-warn); font-size:12px;">🔒 มีรหัส</span>' : '<span style="color:var(--text-muted); font-size:12px;">🔓 ไม่มีรหัส</span>'}</td><td class="user-cell" data-label="IP Address">${n.ip}</td><td class="user-cell" data-label="พอร์ต">Bot: <span style="color:var(--accent-green)">${p}</span><br><span style="font-size:0.8em; color:var(--text-muted);">ICE: ${i}</span></td><td class="user-cell node-actions-cell" data-label="จัดการ"><div class="node-action-row"><button class="btn btn-primary btn-sm" onclick="selectNode(${n.id}, '${n.name}')">เชื่อมต่อ</button> <button class="btn btn-dark btn-sm" onclick="editNode(${n.id}, '${n.name}', '${n.ip}', ${p}, ${i}, '${safePass}')">แก้ไข</button> <button class="btn btn-danger btn-sm" onclick="sysConfirm('ยืนยันการลบสถานี ${n.name}?', () => deleteNode(${n.id}), true)">ลบ</button></div></td></tr>`;
+                });
+                if (!currentId && data.length > 0) document.getElementById('node-modal').style.display = 'flex';
+            });
+        }
+
+        function saveNode() {
+            let rawId = document.getElementById('node-id').value;
+            const data = { id: rawId ? parseInt(rawId) : null, name: document.getElementById('node-name').value, ip: document.getElementById('node-ip').value, port: parseInt(document.getElementById('node-port').value) || 64738, ice_port: parseInt(document.getElementById('node-ice-port').value) || 6502, password: document.getElementById('node-password').value };
+            if (!data.name || !data.ip) return sysAlert("กรุณากรอกชื่อและไอพีให้ครบถ้วน");
+            fetch('/api/servers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(() => { loadNodes(); clearNodeForm(); });
+        }
+        function editNode(id, name, ip, port, ice_port, password) {
+    // ✨ สั่งให้แถบ Manual กางออกทันทีที่กดแก้ไข
+    const details = document.querySelector('details');
+    if (details) details.open = true;
+
+    document.getElementById('node-id').value = id;
+    document.getElementById('node-name').value = name;
+    document.getElementById('node-ip').value = ip;
+    document.getElementById('node-port').value = port;
+    document.getElementById('node-ice-port').value = ice_port;
+    document.getElementById('node-password').value = password || '';
+    
+    // เปลี่ยนชื่อปุ่มเป็น "บันทึกการแก้ไข" เพื่อให้ ผบ. ทราบสถานะ
+    document.getElementById('node-save-btn').innerText = 'บันทึกการแก้ไข';
+    
+    // เลื่อนหน้าจอขึ้นไปที่ฟอร์มแก้ไข (กรณีรายการเยอะ)
+    details.scrollIntoView({ behavior: 'smooth' });
+}
+// 1. เพิ่มฟังก์ชันสำหรับล้าง Container ที่ค้างอยู่ในระบบ (Force Cleanup)
+function forceCleanup() {
+    sysConfirm('คุณต้องการล้างข้อมูล Container ทั้งหมดที่ไม่ได้ใช้งานในระบบใช่หรือไม่? (การดำเนินการนี้จะลบเฉพาะคอนเทนเนอร์ที่ชื่อซ้ำหรือค้างอยู่)', () => {
+        fetch('/api/fleet/cleanup', { method: 'POST' })
+            .then(r => r.json())
+            .then(d => {
+                if (d.status === 'success') {
+                    sysAlert("✅ ดำเนินการล้างข้อมูล Container ที่ค้างอยู่เรียบร้อย");
+                    loadNodes();
+                } else {
+                    sysAlert("❌ ไม่สามารถดำเนินการได้: " + d.error);
+                }
+            });
+    });
+}
+
+// ฟังก์ชันสร้างสถานี
+function deployDockerServer() {
+    const name = document.getElementById('fleet-node-name').value;
+    if(!name) return sysAlert("โปรดระบุชื่อสถานี");
+    
+    document.getElementById('fleet-node-name').value = 'กำลังสร้าง...';
+    fetch('/api/fleet/create', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: name})
+    }).then(r => r.json()).then(d => {
+        document.getElementById('fleet-node-name').value = '';
+        if(d.status === 'success') {
+            sysAlert("✅ " + d.message); // จะมีข้อความแสดงพอร์ตเด้งขึ้นมาบอก
+            loadNodes();
+        } else {
+            sysAlert("❌ ข้อผิดพลาด: " + d.error);
+        }
+    });
+}
+
+// ฟังก์ชันลบสถานี (ทำลาย Container ทิ้งด้วย)
+function deleteServer(id) {
+    // ให้เปลี่ยนชื่อฟังก์ชันที่เรียกตาม API ปัจจุบันของคุณ (ตัวอย่างนี้ใช้ /api/fleet/delete)
+    sysConfirm('ยืนยันการลบ? (คอนเทนเนอร์ใน Docker จะถูกทำลายทิ้งถาวร)', () => {
+        fetch(`/api/fleet/delete/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(d => {
+                if(d.status === 'success') {
+                    sysAlert("✅ ลบข้อมูลและคอนเทนเนอร์เรียบร้อย");
+                    loadNodes();
+                } else {
+                    sysAlert("❌ ลบไม่สำเร็จ");
+                }
+            });
+    });
+}
+        // เขียนทับฟังก์ชันลบเดิม ให้ไปเรียก API ลบแบบถอนรากถอนโคนของ Fleet แทน
+        function deleteNode(id) { 
+            fetch(`/api/fleet/delete/${id}`, {method:'POST'}).then(()=>loadNodes()); 
+        }
+
+        function selectNode(id, name) {
+            currentId = id;
+            document.getElementById('current-node-name').innerText = name;
+            document.getElementById('current-node-name').style.color = 'var(--amber)';
+            document.getElementById('node-modal').style.display = 'none';
+            const logBox = document.getElementById('log-box'); logBox.innerHTML = ''; logBox.dataset.lastLog = '';
+            const aiTerminal = document.getElementById('ai-terminal'); aiTerminal.innerHTML = `<div style="color: var(--border-light);">[SYSTEM] กำลังสลับไปยังสถานี ${name}...</div>`; aiTerminal.dataset.lastContent = '';
+            addLog(`📡 เชื่อมต่อกับสถานี: ${name}`);
+            refreshData();
+            fetchCommandLogs();
+            fetchAITranscription();
+        }
+
+        function killBot(botName) { sysConfirm(`ต้องการถอนกำลังบอท [${botName}] ออกจากเซิร์ฟเวอร์ใช่หรือไม่?`, () => { fetch(`/api/ai/bot/kill/${currentId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: botName }) }).then(() => { addLog(`🗑️ ถอนกำลังบอท [${botName}] เรียบร้อย`); refreshData(); }); }); }
+
+        function refreshData() {
+            if (!currentId) return;
+            fetch(`/api/server/${currentId}`).then(res => res.json()).then(data => {
+                const area = document.getElementById('room-display-area'); const parentSelect = document.getElementById('parent-ch-select'); const nLight = document.getElementById('node-light'); const nText = document.getElementById('node-text');
+                if (data.status.error) { area.innerHTML = `<div style="color:var(--accent-red); text-align:center; padding: 20px;">ข้อผิดพลาด: ${data.status.error}</div>`; nLight.className = "status-dot dot-red"; nLight.style.boxShadow = "none"; nText.innerText = "OFFLINE"; nText.style.color = "var(--accent-red)"; return; }
+                area.innerHTML = ''; const users = data.status.users || []; const channels = data.status.channels || [];
+                renderSpatialTopology(channels, users);
+                document.getElementById('stats-bar').style.display = 'flex'; document.getElementById('stat-servers').parentElement.style.display = 'none'; document.getElementById('stat-users').textContent = users.length; document.getElementById('stat-channels').textContent = channels.length; document.getElementById('stat-bots').textContent = users.filter(u => u.name.startsWith('[AI-')).length;
+                document.getElementById('ai-count-badge').innerText = users.filter(u => u.name.startsWith('[AI-R')).length + ' ACTIVE';
+
+                // ✨ แกัปัญหาห้องเบิ้ล Dropdown (กรอง parseInt !== 0 เด็ดขาด)
+                let options = `<option value="0">-- สร้างเป็นห้องหลัก --</option>`;
+                channels.forEach(c => {
+                    if (parseInt(c.id) !== 0) options += `<option value="${c.id}">${c.name}</option>`;
+                });
+                let oldParentVal = parentSelect.value; parentSelect.innerHTML = options; if (oldParentVal) parentSelect.value = oldParentVal;
+
+                const bcSelect = document.getElementById('bc-channel');
+                if (bcSelect) {
+                    let oldBcVal = bcSelect.value;
+                    let bcOptions = `<option value="all" ${oldBcVal === 'all' ? 'selected' : ''}>🌐 ส่งทุกห้อง</option><option value="0" ${oldBcVal == 0 ? 'selected' : ''}>🏠 # Root</option>`;
+                    channels.forEach(c => {
+                        if (parseInt(c.id) !== 0) bcOptions += `<option value="${c.id}" ${oldBcVal == c.id ? 'selected' : ''}># ${c.name}</option>`;
+                    });
+                    bcSelect.innerHTML = bcOptions;
+                }
+
+                if (channels.length === 0) { area.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:30px;">-- ไม่พบห้องสื่อสารในระบบ --</div>`; return; }
+
+                channels.forEach(ch => {
+                    const chUsers = users.filter(u => u.channel === ch.name || u.channel_id === ch.id);
+                    const safeChNameJS = ch.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const safeChNameHTML = ch.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    area.innerHTML += `<div class="room-card" id="room-card-${ch.id}"><div class="room-header" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="dropUser(event, ${ch.id}, '${safeChNameJS}')"><div><span class="room-name"># ${safeChNameHTML}</span><span class="user-count">(${chUsers.length} นาย)</span></div><div style="display:flex; gap:4px;"><button class="btn btn-warning btn-icon" onclick="sysConfirm('ต้องการปิดไมค์ผู้ใช้ทุกคนในห้อง ${safeChNameJS} ใช่หรือไม่?', () => muteAllInRoom(${ch.id}, '${safeChNameJS}'))" title="ปิดไมค์ทั้งห้อง">🔇</button> <button class="btn btn-blue btn-icon" onclick="openRenameChannel(${ch.id}, '${safeChNameJS}')" title="เปลี่ยนชื่อห้อง">✏️</button> <button class="btn btn-dark btn-icon" onclick="openChannelSettings(${ch.id}, '${safeChNameJS}')" title="ตั้งค่าห้อง">⚙️</button> <button class="btn btn-danger btn-icon admin-only-control" onclick="sysConfirm('ยืนยันการลบห้อง ${safeChNameJS}?', () => deleteChannel(${ch.id}, '${safeChNameJS}'), true)" title="ลบห้อง">🗑️</button></div></div><div><table class="user-table">${chUsers.map(u => { const safeNameJS = u.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); const safeNameHTML = u.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); return `<tr class="user-row" draggable="true" ondragstart="draggedSession={id: ${u.session}, name: '${safeNameJS}'}"><td class="user-cell" style="width: 40%;"><span class="status-dot ${u.mute ? 'dot-red' : ''}" style="flex-shrink:0;"></span><strong style="color: ${u.mute ? 'var(--text-muted)' : 'var(--txt-hi)'}">${safeNameHTML}</strong></td><td class="user-cell" style="width: 20%;"><span class="ping-badge ${u.ping < 80 ? 'ping-good' : u.ping < 150 ? 'ping-warn' : 'ping-bad'}">${u.ping}ms</span></td><td class="user-cell" style="text-align: right; white-space: nowrap;">${u.name.startsWith('[AI-') ? `<button class="btn btn-danger btn-icon" style="background:#8b0000; border:1px solid #ff0000;" onclick="killBot('${safeNameJS}')" title="ถอนกำลังบอทตัวนี้">🗑️</button>` : `<button class="btn ${u.mute ? 'btn-blue' : 'btn-warning'} btn-icon" onclick="toggleMute(${u.session}, '${safeNameJS}', ${!u.mute})" title="${u.mute ? 'เปิดไมค์' : 'ปิดไมค์'}">${u.mute ? '🔊' : '🔇'}</button> <button class="btn btn-purple btn-icon" onclick="toggleDeaf(${u.session}, '${safeNameJS}', ${!u.deaf})" title="${u.deaf ? 'เปิดหูฟัง' : 'ปิดหูฟัง'}">${u.deaf ? '👂' : '🔕'}</button> <button class="btn btn-blue btn-icon" onclick="openDM(${u.session}, '${safeNameJS}')" title="ส่งข้อความ">💬</button> <button class="btn btn-dark btn-icon" onclick="openRenameUser(${u.session}, '${safeNameJS}')" title="เปลี่ยนชื่อ">✏️</button> <button class="btn btn-danger btn-icon" onclick="sysConfirm('ต้องการเตะ ${safeNameJS} ออกจากเซิร์ฟเวอร์?', () => kick(${u.session}, '${safeNameJS}'), true)" title="เตะออก">👢</button> <button class="btn btn-danger btn-icon" style="background:#8b0000; border:1px solid #ff0000;" onclick="sysConfirm('คำเตือน: ยืนยันการ BAN IP ของ ${safeNameJS} ถาวร?', () => banUser(${u.session}, '${safeNameJS}'), true)" title="แบน IP">🚫</button>`}</td></tr>`}).join('')}</table></div></div>`;
+                });
+                applyPermissions(currentUser);
+                nLight.className = "status-dot"; nLight.style.boxShadow = "0 0 5px var(--accent-green)"; nText.innerText = "ONLINE"; nText.style.color = "var(--accent-green)";
+            });
+        }
+
+        function manageAIBot(action) {
+            if (!currentId && action !== 'stop') return sysAlert("โปรดเชื่อมต่อสถานีก่อนส่งบอทลงพื้นที่");
+            if (action === 'start' || action === 'start_all') {
+                const mode = action === 'start_all' ? 'all' : 'single'; addLog(`🟢 กำลังส่งหน่วย AI ลงพื้นที่ (${mode === 'all' ? 'ทุกห้อง' : 'Root'})...`); fetch(`/api/ai/bot/start/${currentId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: mode, channel_id: 0 }) }).then(r => r.json()).then(d => { setTimeout(refreshData, 1000); });
+            } else if (action === 'stop') { sysConfirm('ต้องการปิดบอท AI ทั้งหมดของสถานีนี้ใช่หรือไม่?', () => { fetch(`/api/ai/bot/stop/${currentId}`, { method: 'POST' }).then(r => r.json()).then(d => { document.getElementById('ai-count-badge').innerText = '0 ACTIVE'; document.getElementById('ai-terminal').innerHTML = '<div style="color: var(--border-light);">[SYSTEM] ทำการรีเซ็ต AI เฉพาะสถานีนี้เรียบร้อยแล้ว...</div>'; addLog("🛑 ถอนกำลังหน่วย AI ถอดรหัสทั้งหมดออกจากสถานี"); setTimeout(refreshData, 1000); }); }); }
+        }
+
+        function manageTTSBot(action) {
+            if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน!"); const ch = document.getElementById('bc-channel').value;
+            if (action === 'start') {
+                addLog(`🟢 กำลังวางหน่วย AI ลำโพง...`); fetch(`/api/server/${currentId}/tts_bot/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel_id: ch }) }).then(r => r.json()).then(d => { if (d.status === 'success') { addLog(`✅ วางหน่วย AI ลำโพงเรียบร้อย พร้อมกระจายเสียง/ไมค์สด!`); setTimeout(refreshData, 1000); } else { sysAlert("เกิดข้อผิดพลาด: " + d.error); } });
+            } else if (action === 'stop') { fetch(`/api/server/${currentId}/tts_bot/stop`, { method: 'POST' }).then(r => r.json()).then(d => { addLog("🛑 ถอนกำลังหน่วย AI ลำโพงทั้งหมด"); setTimeout(refreshData, 1000); }); }
+        }
+
+        function clearAILogs() { if (!currentId) return; fetch(`/api/ai/clear/${currentId}`, { method: 'POST' }).then(() => { document.getElementById('ai-terminal').innerHTML = '<div style="color: var(--border-light);">[SYSTEM] ทำการล้างหน้าจอสถานีนี้เรียบร้อย... รอรับข้อมูลใหม่...</div>'; document.getElementById('ai-terminal').dataset.lastContent = ''; addLog("🧹 ล้างหน้าจอแสดงผล AI"); }); }
+
+        function fetchAITranscription() {
+            if (!currentId) return;
+            fetch(`/api/ai/transcript?server_id=${currentId}`).then(res => res.json()).then(data => {
+                const terminal = document.getElementById('ai-terminal'); const msgs = data.messages || []; const processing = data.processing || [];
+                if (msgs.length === 0 && processing.length === 0) return;
+                let contentHTML = msgs.map(msg => `${msg}`).join('');
+                processing.forEach(p => { contentHTML += `<div class="processing-status"><span class="status-dot" style="background:var(--accent-warn); box-shadow: 0 0 5px var(--accent-warn);"></span> <span style='background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:1px 4px; border-radius:3px; font-size:0.75em; color:var(--text-muted); margin-right:4px;'>${p.bot}</span>กำลังถอดรหัสเสียงของ <strong>${p.user}</strong>...</div>`; });
+                if (terminal.dataset.lastContent !== contentHTML) { terminal.innerHTML = contentHTML; terminal.dataset.lastContent = contentHTML; terminal.scrollTop = terminal.scrollHeight; }
+            }).catch(e => { });
+        }
+
+        function dropUser(ev, chId, chName) { ev.preventDefault(); ev.currentTarget.classList.remove('drag-over'); if (!draggedSession) return; fetch(`/api/server/${currentId}/move/${draggedSession.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel_id: chId }) }).then(() => { addLog(`🔀 ลากย้ายผู้ใช้ [${draggedSession.name}] ไปที่ห้อง [${chName}]`); refreshData(); }); }
+        function submitCreateChannel() { if (!isAdmin()) return sysAlert("การสร้างห้องต้องใช้สิทธิ์ Admin"); const name = document.getElementById('new-ch-input').value; const parent = document.getElementById('parent-ch-select').value; if (!name) return sysAlert("โปรดระบุชื่อห้อง"); fetch(`/api/server/${currentId}/channel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, parent_id: parseInt(parent) }) }).then(r => r.json()).then(d => { if (d.status !== 'success') return sysAlert(d.error || 'สร้างห้องไม่สำเร็จ'); document.getElementById('new-ch-input').value = ''; document.getElementById('create-ch-modal').style.display = 'none'; addLog(`📁 สร้างห้องสื่อสารใหม่ชื่อ: [${name}]`); refreshData(); }); }
+        function deleteChannel(id, name) { if (!isAdmin()) return sysAlert("การลบห้องต้องใช้สิทธิ์ Admin"); fetch(`/api/server/${currentId}/channel/${id}`, { method: 'DELETE' }).then(r => r.json()).then(d => { if (d.status !== 'success') return sysAlert(d.error || 'ลบห้องไม่สำเร็จ'); addLog(`🗑️ สั่งลบห้องสื่อสาร: [${name}]`); refreshData(); }); }
+        function toggleMute(s, name, status) { fetch(`/api/server/${currentId}/mute/${s}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mute: status }) }).then(() => { addLog(`🎤 สั่ง ${status ? 'ปิดไมค์' : 'เปิดไมค์'} ของ: [${name}]`); refreshData(); }); }
+        function muteAllInRoom(chId, chName) { fetch(`/api/server/${currentId}/mute_all/${chId}`, { method: 'POST' }).then(() => { addLog(`🔇 สั่งปิดไมค์ทุกคนในห้อง: [${chName}]`); refreshData(); }); }
+        function kick(s, name) { fetch(`/api/server/${currentId}/kick/${s}`, { method: 'POST' }).then(() => { addLog(`👢 สั่งเตะผู้ใช้: [${name}]`); refreshData(); }); }
+        function banUser(s, name) { fetch(`/api/server/${currentId}/ban/${s}`, { method: 'POST' }).then(() => { addLog(`🚫 สั่งแบน IP ผู้ใช้: [${name}] ถาวร!`); refreshData(); }); }
+        function restartServer() { fetch(`/api/server/${currentId}/restart`, { method: 'POST' }).then(() => { addLog("⚠️ สั่งรีสตาร์ทเซิร์ฟเวอร์..."); setTimeout(refreshData, 3000); }); }
+        function openServerPasswordModal() {
+            toggleDropdown('menu-server');
+            if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน");
+            const input = document.getElementById('new-srv-pass');
+            input.value = '';
+            document.getElementById('server-password-modal').style.display = 'flex';
+            setTimeout(() => input.focus(), 80);
+        }
+        function closeServerPasswordModal() {
+            document.getElementById('server-password-modal').style.display = 'none';
+            document.getElementById('new-srv-pass').value = '';
+        }
+        function changeServerPassword() {
+            if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน");
+            const val = document.getElementById('new-srv-pass').value;
+            const action = val ? 'เปลี่ยนรหัสผ่านเซิร์ฟเวอร์' : 'ปลดรหัสผ่านเซิร์ฟเวอร์';
+            sysConfirm(`ยืนยัน${action}? ผู้ที่เชื่อมต่อใหม่จะต้องใช้ค่าล่าสุด`, async () => {
+                try {
+                    const response = await fetch(`/api/server/${currentId}/password`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: val }) });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || data.status !== 'success') throw new Error('ไม่สามารถบันทึกได้');
+                    closeServerPasswordModal();
+                    sysAlert(`${action}สำเร็จ`);
+                    addLog(`🔑 ${action}`);
+                } catch (error) {
+                    sysAlert(`${action}ไม่สำเร็จ กรุณาตรวจสถานีและลองใหม่`);
+                }
+            }, true);
+        }
+
+        function broadcast() { if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน!"); const val = document.getElementById('bc-input').value; const ch = document.getElementById('bc-channel').value; if (!val) return sysAlert("โปรดระบุข้อความ"); fetch(`/api/server/${currentId}/broadcast`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: val, channel_id: ch }) }).then(() => { document.getElementById('bc-input').value = ''; addLog(`💬 ส่งแชท: ${val}`); }); }
+
+        function ttsBroadcast() {
+            if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน!"); const val = document.getElementById('bc-input').value; const ch = document.getElementById('bc-channel').value; if (!val) return sysAlert("โปรดระบุข้อความที่จะให้ AI พูด");
+            let history = JSON.parse(localStorage.getItem('ttsHistory') || '[]'); history = history.filter(t => t !== val); history.unshift(val); if (history.length > 20) history.pop(); localStorage.setItem('ttsHistory', JSON.stringify(history));
+            document.getElementById('bc-input').value = '';
+            fetch(`/api/server/${currentId}/tts_broadcast`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: val, channel_id: ch }) }).then(r => r.json()).then(d => { if (d.status === 'success') { addLog(`📢 สั่ง AI กระจายเสียง: "${val}"`); } else { sysAlert("เกิดข้อผิดพลาด: " + d.error); } });
+        }
+
+        function openTTSHistoryModal() {
+            const list = document.getElementById('tts-history-list'); let history = JSON.parse(localStorage.getItem('ttsHistory') || '[]');
+            if (history.length === 0) { list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">ไม่มีประวัติการสั่งการ</div>'; }
+            else { list.innerHTML = history.map(text => `<div style="background:var(--bg-row); border:1px solid var(--b1); padding:10px 12px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; gap:10px;"><span style="color:var(--txt-hi); flex:1; overflow:hidden; text-overflow:ellipsis;">${text}</span><button class="btn btn-blue btn-sm" onclick="sendHistoryTTS('${text.replace(/'/g, "\\'")}')" style="white-space:nowrap;">▶ ส่งซ้ำ</button></div>`).join(''); }
+            document.getElementById('tts-history-modal').style.display = 'flex';
+        }
+        function sendHistoryTTS(text) { document.getElementById('tts-history-modal').style.display = 'none'; document.getElementById('bc-input').value = text; ttsBroadcast(); }
+        function clearTTSHistory() { sysConfirm('ต้องการล้างประวัติคำสั่งเสียง และลบไฟล์เสียงที่ค้างในระบบทั้งหมดใช่หรือไม่?', () => { localStorage.removeItem('ttsHistory'); document.getElementById('tts-history-list').innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">ไม่มีประวัติการสั่งการ</div>'; fetch('/api/tts/clear_files', { method: 'POST' }).then(r => r.json()).then(d => { sysAlert("ล้างประวัติและทำลายไฟล์เสียงเก่าเรียบร้อยแล้ว!"); addLog("🗑️ ล้างประวัติและไฟล์เสียง AI โทรโข่ง"); }); }, true); }
+
+        function addLog(m, saveDb = true) {
+            const box = document.getElementById('log-box'); let uiMsg = m.replace(/\[(.*?)\]/g, '<span style="color:var(--accent-green)">[$1]</span>');
+            box.innerHTML = `<div class="log-entry" style="margin-bottom: 5px;"><span style="color:var(--border-light);">[${new Date().toLocaleTimeString()}]</span> ${uiMsg}</div>` + box.innerHTML;
+            if (saveDb && currentId) { fetch(`/api/log/${currentId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: m }) }).then(() => fetchCommandLogs()); }
+        }
+
+        function fetchCommandLogs() {
+            if (!currentId) return; fetch(`/api/logs/${currentId}`).then(r => r.json()).then(data => {
+                const box = document.getElementById('log-box'); let html = '';
+                data.forEach(l => { let uiMsg = l.message.replace(/\[(.*?)\]/g, '<span style="color:var(--accent-green)">[$1]</span>'); html += `<div class="log-entry" style="margin-bottom: 5px;"><span style="color:var(--border-light);">[${l.time.split(' ')[1]}]</span> ${uiMsg}</div>`; });
+                if (box.dataset.lastLog !== html) { box.innerHTML = html; box.dataset.lastLog = html; }
+            }).catch(() => { });
+        }
+
+        function toggleDeaf(s, name, status) { fetch(`/api/server/${currentId}/deaf/${s}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deaf: status }) }).then(() => { addLog(`${status ? '🔕 ปิดหูฟัง' : '👂 เปิดหูฟัง'} ของ: [${name}]`); refreshData(); }); }
+        function openDM(session, name) { document.getElementById('dm-session').value = session; document.getElementById('dm-name').value = name; document.getElementById('dm-message').value = ''; document.getElementById('dm-modal').style.display = 'flex'; }
+        function submitDM() { const session = document.getElementById('dm-session').value; const name = document.getElementById('dm-name').value; const msg = document.getElementById('dm-message').value; if (!msg) return sysAlert("โปรดระบุข้อความ"); fetch(`/api/server/${currentId}/message/${session}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) }).then(() => { document.getElementById('dm-modal').style.display = 'none'; addLog(`💬 ส่งข้อความถึง [${name}]: ${msg}`); }); }
+        function openRenameChannel(id, name) { document.getElementById('rename-ch-id').value = id; document.getElementById('rename-ch-input').value = name; document.getElementById('rename-ch-modal').style.display = 'flex'; }
+        function submitRenameChannel() { const id = document.getElementById('rename-ch-id').value; const name = document.getElementById('rename-ch-input').value; if (!name) return sysAlert("โปรดระบุชื่อ"); fetch(`/api/server/${currentId}/channel/${id}/rename`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }).then(() => { document.getElementById('rename-ch-modal').style.display = 'none'; addLog(`✏️ เปลี่ยนชื่อห้องเป็น [${name}]`); refreshData(); }); }
+        function openBanList() { toggleDropdown('menu-server'); if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน"); document.getElementById('ban-modal').style.display = 'flex'; document.getElementById('ban-list-content').innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:20px;">กำลังโหลด...</div>'; fetch(`/api/server/${currentId}/bans`).then(r => r.json()).then(data => { const bans = data.bans || []; if (bans.length === 0) { document.getElementById('ban-list-content').innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:20px;">ไม่มีรายการที่ถูกแบน</div>'; return; } let html = bans.map((b, i) => `<div class="ban-row"><div><div style="font-weight:bold;color:var(--accent-red);">${b.name || 'Unknown'}</div><div style="color:var(--text-muted);font-size:0.8em;">เหตุผล: ${b.reason || '-'} | ระยะเวลา: ${b.duration === 0 ? 'ถาวร' : b.duration + 'วิ'}</div></div><button class="btn btn-primary btn-sm" onclick="sysConfirm('ยืนยันการยกเลิก Ban?', () => unbanUser(${i}))">ยกเลิก Ban</button></div>`).join(''); document.getElementById('ban-list-content').innerHTML = html; }); }
+        function unbanUser(index) { fetch(`/api/server/${currentId}/unban/${index}`, { method: 'POST' }).then(() => { addLog(`🔓 ยกเลิก ban รายการที่ ${index}`); openBanList(); }); }
+        function openServerSettings() { toggleDropdown('menu-server'); if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน"); document.getElementById('server-settings-modal').style.display = 'flex'; }
+        function submitWelcomeText() { const text = document.getElementById('welcome-text-input').value; fetch(`/api/server/${currentId}/welcome`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) }).then(() => { sysAlert("บันทึกข้อความต้อนรับสำเร็จ"); addLog(`👋 อัพเดทข้อความต้อนรับ`); }); }
+        function submitMaxUsers() { const max = parseInt(document.getElementById('max-users-input').value); if (!max || max < 1) return sysAlert("โปรดระบุจำนวนที่ถูกต้อง"); fetch(`/api/server/${currentId}/maxusers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ max_users: max }) }).then(() => { sysAlert(`ตั้งค่า Max Users: ${max} คน สำเร็จ`); addLog(`👥 ตั้งค่า Max Users: ${max}`); }); }
+        function openRenameUser(session, name) { document.getElementById('rename-user-session').value = session; document.getElementById('rename-user-input').value = name; document.getElementById('rename-user-modal').style.display = 'flex'; }
+        function submitRenameUser() { const session = document.getElementById('rename-user-session').value; const name = document.getElementById('rename-user-input').value; if (!name) return sysAlert("โปรดระบุชื่อ"); fetch(`/api/server/${currentId}/rename_user/${session}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }).then(() => { document.getElementById('rename-user-modal').style.display = 'none'; addLog(`✏️ เปลี่ยนชื่อ session เป็น [${name}]`); refreshData(); }); }
+        function openChannelSettings(id, name) { document.getElementById('ch-settings-id').value = id; document.getElementById('ch-settings-name').innerText = name; document.getElementById('ch-password-input').value = ''; document.getElementById('ch-maxusers-input').value = ''; document.getElementById('channel-settings-modal').style.display = 'flex'; }
+        function submitChannelPassword() { const id = document.getElementById('ch-settings-id').value; const pw = document.getElementById('ch-password-input').value; fetch(`/api/server/${currentId}/channel/${id}/password`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) }).then(() => { sysAlert(pw ? `ล็อกห้องด้วยรหัสผ่านสำเร็จ` : `ปลดล็อกห้องสำเร็จ`); addLog(`🔑 ตั้งรหัสผ่านห้อง ${id}`); }); }
+        function submitChannelMaxUsers() { const id = document.getElementById('ch-settings-id').value; const max = parseInt(document.getElementById('ch-maxusers-input').value) || 0; fetch(`/api/server/${currentId}/channel/${id}/maxusers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ max_users: max }) }).then(() => { sysAlert(`ตั้ง Max Users ห้อง: ${max === 0 ? 'ไม่จำกัด' : max + ' คน'}`); addLog(`👥 Max Users ห้อง ${id} = ${max}`); }); }
+        function openMumbleLogs() { toggleDropdown('menu-server'); if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน"); document.getElementById('mumble-logs-modal').style.display = 'flex'; document.getElementById('mumble-logs-content').innerHTML = '<span style="color:var(--text-muted);">กำลังโหลด...</span>'; fetch(`/api/server/${currentId}/mumble_logs`).then(r => r.json()).then(data => { const logs = data.logs || []; if (logs.length === 0) { document.getElementById('mumble-logs-content').innerHTML = '<span style="color:var(--text-muted);">ไม่มี log</span>'; return; } document.getElementById('mumble-logs-content').innerHTML = logs.map(l => `<div style="margin-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.04); padding-bottom:4px;"><span style="color:var(--text-muted);">[${l.timestamp}]</span> <span style="color:var(--accent-green);">${l.txt}</span></div>`).join(''); }); }
+        function openRegisteredUsers() { toggleDropdown('menu-server'); if (!currentId) return sysAlert("โปรดเชื่อมต่อสถานีก่อน"); document.getElementById('registered-users-modal').style.display = 'flex'; loadRegisteredUsers(); }
+        function loadRegisteredUsers() { document.getElementById('registered-users-list').innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">กำลังโหลด...</div>'; fetch(`/api/server/${currentId}/users/registered`).then(r => r.json()).then(data => { const users = data.users || []; if (users.length === 0) { document.getElementById('registered-users-list').innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">ไม่มี account ที่ลงทะเบียน</div>'; return; } document.getElementById('registered-users-list').innerHTML = users.map(u => `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><div><strong>${u.name}</strong> <span style="color:var(--text-muted); font-size:0.8em;">uid: ${u.id}</span></div>${u.id > 1 ? `<button class="btn btn-danger btn-sm" onclick="sysConfirm('ลบ account ${u.name}?', () => deleteRegisteredUser(${u.id}), true)">ลบ</button>` : '<span style="color:var(--text-muted);font-size:0.8em;">SuperUser</span>'}</div>`).join(''); }); }
+        function submitRegisterUser() { const username = document.getElementById('reg-username').value; const password = document.getElementById('reg-password').value; if (!username) return sysAlert("โปรดระบุชื่อผู้ใช้"); fetch(`/api/server/${currentId}/users/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) }).then(r => r.json()).then(d => { if (d.status === 'success') { document.getElementById('reg-username').value = ''; document.getElementById('reg-password').value = ''; addLog(`👤 สร้าง account [${username}]`); loadRegisteredUsers(); } else { sysAlert("สร้าง account ไม่สำเร็จ อาจมีชื่อซ้ำ"); } }); }
+        function deleteRegisteredUser(uid) { fetch(`/api/server/${currentId}/users/unregister/${uid}`, { method: 'POST' }).then(() => { addLog(`🗑️ ลบ account uid=${uid}`); loadRegisteredUsers(); }); }
+
+        function openAdminUsers() {
+            if (!isAdmin()) return sysAlert('ต้องใช้สิทธิ์ Admin');
+            document.getElementById('admin-users-modal').style.display = 'flex';
+            loadAppUsers();
+        }
+        function loadAppUsers() {
+            const list = document.getElementById('app-users-list');
+            list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">กำลังโหลด...</div>';
+            fetch('/api/admin/users').then(r => r.json()).then(data => {
+                if (!data.users || data.users.length === 0) {
+                    list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">ยังไม่มีบัญชี</div>';
+                    return;
+                }
+                const rooms = data.rooms || [];
+                list.innerHTML = data.users.map(u => {
+                    const name = escapeHtml(u.username);
+                    const last = u.last_login_at ? new Date(u.last_login_at).toLocaleString('th-TH') : 'ยังไม่เคยเข้าใช้';
+                    const assignedRooms = u.room_permissions || [];
+                    const assigned = new Set(assignedRooms.map(room => `${room.station_id}:${room.channel_id}`));
+                    const availableRooms = [...rooms];
+                    assignedRooms.forEach(room => {
+                        const key = `${room.station_id}:${room.channel_id}`;
+                        if (!availableRooms.some(option => `${option.station_id}:${option.channel_id}` === key)) {
+                            availableRooms.push({
+                                station_id: room.station_id,
+                                station_name: `Station ${room.station_id}`,
+                                channel_id: room.channel_id,
+                                channel_name: room.channel_name || `ห้อง ${room.channel_id} (เดิม/สถานีออฟไลน์)`,
+                            });
+                        }
+                    });
+                    const roomOptions = availableRooms.length
+                        ? availableRooms.map(room => {
+                            const value = `${room.station_id}:${room.channel_id}`;
+                            const label = `${escapeHtml(room.station_name)} / ${escapeHtml(room.channel_name || `ห้อง ${room.channel_id}`)}`;
+                            return `<option value="${value}" data-station-id="${room.station_id}" data-channel-id="${room.channel_id}" data-channel-name="${escapeHtml(room.channel_name || '')}" ${assigned.has(value) ? 'selected' : ''}>${label}</option>`;
+                        }).join('')
+                        : '<option disabled>ไม่พบห้องจากสถานีที่ออนไลน์</option>';
+                    return `<div class="user-row" style="display:grid; grid-template-columns:1.2fr 0.9fr 1fr auto; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <div><strong>${name}</strong><br><small style="color:var(--text-muted);">เข้าใช้ล่าสุด: ${escapeHtml(last)}</small></div>
+                        <select id="app-role-${u.id}"><option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option><option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option></select>
+                        <input type="password" id="app-pass-${u.id}" placeholder="รหัสใหม่ (ถ้าจะเปลี่ยน)" autocomplete="new-password">
+                        <div style="display:flex; gap:4px; align-items:center;"><label style="font-size:0.8em; white-space:nowrap;"><input type="checkbox" id="app-active-${u.id}" ${u.is_active ? 'checked' : ''}> ใช้งาน</label><button class="btn btn-primary btn-sm" onclick="updateAppUser(${u.id})">บันทึก</button><button class="btn btn-danger btn-sm" onclick="sysConfirm('ลบบัญชี ${name}?', () => deleteAppUser(${u.id}), true)">ลบ</button></div>
+                        <div style="grid-column:1 / -1; display:grid; gap:5px; margin-top:2px;"><label style="color:var(--text-muted); font-size:0.8em;">ห้องที่ User มีสิทธิ์ค้นหา/เปิดเสียงย้อนหลัง <span style="color:var(--accent-warn);">(กด Ctrl เพื่อเลือกหลายห้อง)</span></label><select id="app-rooms-${u.id}" multiple size="3" style="width:100%;">${roomOptions}</select></div>
+                    </div>`;
+                }).join('');
+            }).catch(() => { list.innerHTML = '<div style="color:var(--accent-red);padding:10px;">โหลดรายชื่อผู้ใช้ไม่สำเร็จ</div>'; });
+        }
+        function createAppUser() {
+            const username = document.getElementById('app-user-username').value.trim();
+            const password = document.getElementById('app-user-password').value;
+            const role = document.getElementById('app-user-role').value;
+            fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password, role }) }).then(r => r.json()).then(data => {
+                if (data.status !== 'success') return sysAlert(data.error || 'สร้างบัญชีไม่สำเร็จ');
+                document.getElementById('app-user-username').value = ''; document.getElementById('app-user-password').value = '';
+                loadAppUsers(); sysAlert('สร้างบัญชีผู้ใช้เรียบร้อย');
+            });
+        }
+        function updateAppUser(id) {
+            const role = document.getElementById(`app-role-${id}`).value;
+            const password = document.getElementById(`app-pass-${id}`).value;
+            const is_active = document.getElementById(`app-active-${id}`).checked;
+            fetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role, password, is_active }) }).then(r => r.json()).then(data => {
+                if (data.status !== 'success') return sysAlert(data.error || 'บันทึกสิทธิ์ไม่สำเร็จ');
+                const roomSelect = document.getElementById(`app-rooms-${id}`);
+                const rooms = roomSelect ? Array.from(roomSelect.selectedOptions).map(option => ({
+                    station_id: Number(option.dataset.stationId),
+                    channel_id: Number(option.dataset.channelId),
+                    channel_name: option.dataset.channelName || option.textContent,
+                })) : [];
+                fetch(`/api/admin/users/${id}/rooms`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rooms }) }).then(r => r.json()).then(roomData => {
+                    if (roomData.status !== 'success') return sysAlert(roomData.error || 'บันทึกสิทธิ์ห้องไม่สำเร็จ');
+                    loadAppUsers(); sysAlert('บันทึกบัญชีและสิทธิ์ห้องเรียบร้อย');
+                });
+            });
+        }
+        function deleteAppUser(id) {
+            fetch(`/api/admin/users/${id}`, { method: 'DELETE' }).then(r => r.json()).then(data => {
+                if (data.status !== 'success') return sysAlert(data.error || 'ลบบัญชีไม่สำเร็จ');
+                loadAppUsers();
+            });
+        }
+
+        function toggleTheme() { const isLight = document.body.classList.toggle('light-mode'); localStorage.setItem('theme', isLight ? 'light' : 'dark'); document.getElementById('theme-toggle').innerText = isLight ? '◑ DARK' : '◐ LIGHT'; }
+        (function () { if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); document.addEventListener('DOMContentLoaded', function () { const btn = document.getElementById('theme-toggle'); if (btn) btn.innerText = '◑ DARK'; }); } })();
+
+        function loopLogs() { fetchCommandLogs(); setTimeout(loopLogs, 10000); }
+        function loopData() { refreshData(); setTimeout(loopData, 10000); }
+        function loopAI() { fetchAITranscription(); setTimeout(loopAI, 2000); }
+
+        setTimeout(loopLogs, 0); setTimeout(loopAI, 500); setTimeout(loopData, 2500);
+    </script>
+</body>
+
+</html>

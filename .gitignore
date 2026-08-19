@@ -1,0 +1,37 @@
+# Secrets and local runtime data
+.env
+.secret_key
+servers.json
+tactical.db
+tactical.db-shm
+tactical.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Audio, logs, caches and generated files
+static/records/
+*.log
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/
+
+# Local Windows/Mumble binaries and legacy launch files
+*.dll
+cmdrun
+murmur.ini
+index-old.html
+
+# Local/editor/OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

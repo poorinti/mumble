@@ -1,0 +1,25 @@
+:80 {
+    encode zstd gzip
+
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "same-origin"
+        -Server
+    }
+
+    reverse_proxy command-center:5000 {
+        health_uri /healthz
+        health_interval 15s
+        health_timeout 3s
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 65s
+        }
+    }
+
+    log {
+        output stdout
+        format console
+    }
+}

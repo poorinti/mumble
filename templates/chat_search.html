@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROIP Chat Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='chat-search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='ios-theme.css', v='20260819-1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='spatial-network.css', v='20260819-7') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260819-1') }}">
+</head>
+<body>
+    <script>
+        if (new URLSearchParams(window.location.search).get('embedded') === '1') document.body.classList.add('embedded');
+    </script>
+    <header class="topbar">
+        <div class="brand-block">
+            <a class="back-link" href="/" aria-label="กลับหน้าศูนย์บัญชาการ">←</a>
+            <div>
+                <div class="eyebrow">ROIP COMMAND CENTER</div>
+                <h1>ค้นหาแชทและเสียงย้อนหลัง</h1>
+            </div>
+        </div>
+        <div class="top-actions">
+            <div class="search-view-switch" role="group" aria-label="เลือกมุมมองข้อมูล">
+                <a href="/?view=spatial">แผนผัง</a>
+                <button type="button" class="active" data-search-view="chat">หน้าแชท</button>
+                <button type="button" data-search-view="log">หน้า Log</button>
+            </div>
+            <span id="scope-badge" class="scope-badge" aria-live="polite">กำลังตรวจสอบสิทธิ์…</span>
+            <select id="saved-search-select" aria-label="ชุดค้นหาที่บันทึกไว้">
+                <option value="">ชุดค้นหาที่บันทึกไว้</option>
+            </select>
+            <button id="save-search-btn" class="button secondary" type="button">บันทึกชุดค้นหา</button>
+            <button id="export-btn" class="button secondary" type="button">ส่งออก CSV</button>
+            <button id="help-btn" class="button secondary help-button" type="button" aria-label="เปิดคู่มือหน้าค้นหา">? วิธีใช้</button>
+        </div>
+    </header>
+
+    <section class="search-network-strip" aria-label="ขอบเขตเครือข่ายที่ค้นหา">
+        <div><strong>SPATIAL SEARCH SCOPE</strong><br><small>ค้นหาภายใต้สิทธิ์ของบัญชี</small></div>
+        <div class="search-network-line" aria-hidden="true">
+            <span class="search-network-node">Station 01</span><i></i>
+            <span class="search-network-node">ห้องที่ได้รับสิทธิ์</span><i></i>
+            <span class="search-network-node alert">Incident / Alert</span>
+        </div>
+        <span class="search-network-mode">POSTGRESQL · AUDIT READY</span>
+    </section>
+
+    <main class="search-layout">
+        <aside class="filter-panel" aria-label="ตัวกรองการค้นหา">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">FILTERS</span>
+                    <h2>ขอบเขตการค้นหา</h2>
+                </div>
+                <button id="reset-btn" class="text-button" type="button">ล้างทั้งหมด</button>
+            </div>
+
+            <label class="field">
+                <span>สถานี</span>
+                <select id="station-filter" multiple size="5" aria-describedby="station-help"></select>
+                <small id="station-help">กำลังโหลดห้องที่คุณมีสิทธิ์…</small>
+            </label>
+
+            <label class="field">
+                <span>ผู้พูด</span>
+                <input id="speaker-filter" type="text" list="speaker-options" placeholder="ชื่อผู้พูดทั้งหมด">
+                <datalist id="speaker-options"></datalist>
+            </label>
+
+            <div class="field-grid">
+                <label class="field">
+                    <span>ตั้งแต่</span>
+                    <input id="from-filter" type="datetime-local">
+                </label>
+                <label class="field">
+                    <span>ถึง</span>
+                    <input id="to-filter" type="datetime-local">
+                </label>
+            </div>
+
+            <fieldset class="field checkbox-group">
+                <legend>ประเภทข้อมูล</legend>
+                <label><input type="checkbox" name="message-type" value="voice_transcript" checked> เสียงถอดข้อความ</label>
+                <label><input type="checkbox" name="message-type" value="alert" checked> Keyword alert</label>
+                <label><input type="checkbox" name="message-type" value="text_chat" checked> ข้อความแชท</label>
+                <label><input type="checkbox" name="message-type" value="tts" checked> TTS</label>
+                <label><input type="checkbox" name="message-type" value="ptt" checked> Web PTT</label>
+            </fieldset>
+
+            <label class="field">
+                <span>หลักฐานเสียง</span>
+                <select id="audio-filter">
+                    <option value="">ทั้งหมด</option>
+                    <option value="true">มีไฟล์เสียง</option>
+                    <option value="false">ไม่มีไฟล์เสียง</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>คำเฝ้าระวัง</span>
+                <select id="keyword-filter">
+                    <option value="">ทุกคำ</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>สถานะ Incident</span>
+                <select id="case-status-filter">
+                    <option value="">ทุกสถานะ / ยังไม่เปิด Incident</option>
+                    <option value="open">เปิดอยู่</option>
+                    <option value="acknowledged">รับทราบแล้ว</option>
+                    <option value="investigating">กำลังตรวจสอบ</option>
+                    <option value="closed">ปิดแล้ว</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Confidence ขั้นต่ำ</span>
+                <div class="range-row">
+                    <input id="confidence-filter" type="range" min="0" max="1" step="0.05" value="0">
+                    <output id="confidence-output">ไม่จำกัด</output>
+                </div>
+            </label>
+
+            <label class="toggle-row">
+                <input id="fuzzy-filter" type="checkbox">
+                <span>ค้นหาคำใกล้เคียง</span>
+            </label>
+
+            <button id="filter-search-btn" class="button primary full" type="button">ค้นหาตามเงื่อนไข</button>
+        </aside>
+
+        <section class="results-panel">
+            <form id="search-form" class="search-bar" role="search">
+                <div class="search-input-wrap">
+                    <span class="search-icon" aria-hidden="true">⌕</span>
+                    <input id="query-input" type="search" maxlength="500"
+                        placeholder="ค้นหาข้อความ เช่น ขอกำลังเสริม หรือ ว.8" autocomplete="off">
+                    <kbd>Ctrl K</kbd>
+                </div>
+                <button class="button primary" type="submit">ค้นหา</button>
+            </form>
+
+            <div class="result-toolbar">
+                <div>
+                    <strong id="result-summary">พร้อมค้นหาข้อมูล</strong>
+                    <span id="result-timing" class="muted"></span>
+                </div>
+                <select id="sort-filter" aria-label="ลำดับผลลัพธ์">
+                    <option value="latest">ล่าสุดก่อน</option>
+                    <option value="oldest">เก่าสุดก่อน</option>
+                </select>
+            </div>
+
+            <div id="active-filters" class="active-filters" aria-live="polite"></div>
+            <div id="search-status" class="status-card">
+                <strong>เริ่มค้นหาได้ทันที</strong>
+                <p>เลือกช่วงเวลา สถานี หรือพิมพ์ข้อความด้านบน ระบบจะแสดงข้อมูลจาก PostgreSQL</p>
+            </div>
+            <div id="result-list" class="result-list" aria-live="polite"></div>
+            <button id="load-more-btn" class="button secondary load-more" type="button" hidden>โหลดผลลัพธ์ถัดไป</button>
+        </section>
+
+        <aside id="detail-panel" class="detail-panel" aria-label="บริบทและหลักฐาน">
+            <button id="detail-close-btn" class="detail-close" type="button" aria-label="ปิดรายละเอียด">×</button>
+            <div id="detail-empty" class="detail-empty">
+                <strong>เลือกข้อความเพื่อดูรายละเอียด</strong>
+                <p>บริบทก่อน–หลัง ไฟล์เสียง Keyword และเครื่องมือจัดการเหตุการณ์จะแสดงที่นี่</p>
+            </div>
+            <div id="detail-content" hidden>
+                <div class="detail-header">
+                    <div>
+                        <span class="eyebrow">MESSAGE EVIDENCE</span>
+                        <h2 id="detail-title">รายละเอียดข้อความ</h2>
+                    </div>
+                    <span id="detail-id" class="id-badge"></span>
+                </div>
+                <dl id="detail-metadata" class="metadata-grid"></dl>
+                <div id="detail-message" class="detail-message"></div>
+                <div id="detail-keywords" class="chip-row"></div>
+                <audio id="detail-audio" controls preload="metadata" hidden></audio>
+                <div class="action-grid">
+                    <button id="bookmark-btn" class="button secondary" type="button">Bookmark / Note</button>
+                    <button id="correction-btn" class="button secondary" type="button">แก้ Transcript</button>
+                    <button id="case-btn" class="button danger" type="button">เปิด Incident</button>
+                </div>
+                <div class="context-heading">
+                    <h3>บริบทก่อน–หลัง</h3>
+                    <span class="muted">ห้องและสถานีเดียวกัน</span>
+                </div>
+                <div id="context-list" class="context-list"></div>
+            </div>
+        </aside>
+    </main>
+
+    <dialog id="bookmark-dialog">
+        <form method="dialog" class="dialog-card" data-action="bookmark">
+            <div class="dialog-heading"><h2>Bookmark และหมายเหตุ</h2><button value="cancel" aria-label="ปิด">×</button></div>
+            <label class="field"><span>Tags (คั่นด้วย comma)</span><input id="bookmark-tags" type="text" maxlength="500" placeholder="ฉุกเฉิน, ตรวจสอบแล้ว"></label>
+            <label class="field"><span>หมายเหตุ</span><textarea id="bookmark-note" maxlength="2000" rows="5"></textarea></label>
+            <div class="dialog-actions"><button value="cancel" class="button secondary">ยกเลิก</button><button id="bookmark-save" value="default" class="button primary">บันทึก</button></div>
+        </form>
+    </dialog>
+
+    <dialog id="correction-dialog">
+        <form method="dialog" class="dialog-card" data-action="correction">
+            <div class="dialog-heading"><h2>แก้ไข Transcript</h2><button value="cancel" aria-label="ปิด">×</button></div>
+            <p class="notice">ข้อความต้นฉบับจาก AI จะถูกเก็บไว้ การแก้ไขครั้งนี้จะสร้าง Revision ใหม่</p>
+            <label class="field"><span>ข้อความที่ถูกต้อง</span><textarea id="correction-text" maxlength="10000" rows="7" required></textarea></label>
+            <label class="field"><span>เหตุผล</span><input id="correction-reason" maxlength="500" placeholder="เช่น ตรวจสอบจากไฟล์เสียงแล้ว"></label>
+            <div class="dialog-actions"><button value="cancel" class="button secondary">ยกเลิก</button><button id="correction-save" value="default" class="button primary">บันทึก Revision</button></div>
+        </form>
+    </dialog>
+
+    <dialog id="case-dialog">
+        <form method="dialog" class="dialog-card" data-action="case">
+            <div class="dialog-heading"><h2>เปิด Incident</h2><button value="cancel" aria-label="ปิด">×</button></div>
+            <label class="field"><span>ชื่อเหตุการณ์</span><input id="case-title" maxlength="300" required placeholder="เช่น ขอสนับสนุนกำลัง จุดตรวจเหนือ"></label>
+            <label class="field"><span>ระดับความรุนแรง</span><select id="case-severity"><option value="low">ต่ำ</option><option value="medium" selected>กลาง</option><option value="high">สูง</option><option value="critical">วิกฤต</option></select></label>
+            <label class="field"><span>หมายเหตุ</span><textarea id="case-note" maxlength="2000" rows="4"></textarea></label>
+            <div class="dialog-actions"><button value="cancel" class="button secondary">ยกเลิก</button><button id="case-save" value="default" class="button danger">สร้าง Incident</button></div>
+        </form>
+    </dialog>
+
+    <dialog id="saved-search-dialog">
+        <form method="dialog" class="dialog-card" data-action="saved-search">
+            <div class="dialog-heading"><h2>บันทึกชุดค้นหา</h2><button value="cancel" aria-label="ปิด">×</button></div>
+            <label class="field"><span>ชื่อชุดค้นหา</span><input id="saved-search-name" maxlength="120" required placeholder="เช่น ฉุกเฉิน 24 ชั่วโมง"></label>
+            <label class="toggle-row"><input id="saved-search-notify" type="checkbox"><span>เตรียมไว้สำหรับแจ้งเตือนอัตโนมัติ</span></label>
+            <div class="dialog-actions"><button value="cancel" class="button secondary">ยกเลิก</button><button id="saved-search-save" value="default" class="button primary">บันทึก</button></div>
+        </form>
+    </dialog>
+
+    <dialog id="help-dialog">
+        <form method="dialog" class="dialog-card help-dialog-card">
+            <div class="dialog-heading"><div><span class="eyebrow">SEARCH HELP</span><h2>วิธีใช้หน้าค้นหาแชทและเสียงย้อนหลัง</h2></div><button value="cancel" aria-label="ปิด">×</button></div>
+            <div class="help-scroll-area">
+                <div class="help-visual" role="img" aria-label="ภาพลำดับการค้นหาและจัดการหลักฐาน">
+                    <div class="help-visual-caption">ค้นหา → กรอง → เลือกผลลัพธ์ → เปิดเสียง → เก็บหลักฐาน</div>
+                    <div class="help-mini-ui">
+                        <span class="help-mini-field">⌕ ขอกำลังเสริม</span><span class="help-mini-button primary">ค้นหา</span>
+                        <span class="help-mini-badge">สถานีเหนือ</span><span class="help-mini-badge">มีเสียง</span>
+                        <span class="help-mini-result"><strong>เจ้าหน้าที่-01</strong> · พบข้อความพร้อมไฟล์เสียง → คลิกเพื่อดูรายละเอียด</span>
+                        <span class="help-mini-button blue">▶ เปิดเสียง</span><span class="help-mini-button primary">Bookmark</span><span class="help-mini-button danger">เปิด Incident</span>
+                    </div>
+                </div>
+                <div class="help-sections">
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon is-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M3 20c.4-4 2.2-6 5-6 1.6 0 2.9.7 3.8 2"></path><circle cx="16.5" cy="11.5" r="2.5"></circle><path d="m18.4 13.4 3.1 3.1M19.7 15.7l-1.4 1.4"></path></svg></span><h3>1. สิทธิ์และป้ายขอบเขต</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-badge">ADMIN · ดูได้ทุกห้อง</span><span class="help-mini-badge">USER · 2 ห้อง</span></div>
+                        <ul class="help-list"><li><span class="help-function-name">Admin</span> เห็นทุกสถานี ทุกห้อง เปิดเสียงและ Export ได้ทั้งหมด</li><li><span class="help-function-name">User</span> เห็นเฉพาะห้องที่ Admin ผูกกับบัญชี</li><li>ถ้ายังไม่ได้รับสิทธิ์ห้อง ระบบจะแสดงผลลัพธ์เป็นศูนย์</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5M7 10.5h7M9 7.5h3"></path></svg></span><h3>2. ช่องค้นหาหลัก</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-field">ข้อความ คำพูด หรือ ว.8</span><span class="help-mini-button primary">ค้นหา</span></div>
+                        <ul class="help-list"><li>ค้นหาคำเดี่ยว ประโยค ชื่อเหตุการณ์ หรือรหัสวิทยุได้</li><li>กด <b>Enter</b> เพื่อค้นหา หรือ <b>Ctrl + K</b> เพื่อโฟกัสช่องนี้ทันที</li><li>คำที่ตรงจะถูกไฮไลต์ในผลลัพธ์</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon is-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"></path><circle cx="8" cy="6" r="2"></circle><circle cx="15" cy="12" r="2"></circle><circle cx="12" cy="18" r="2"></circle></svg></span><h3>3. สถานี ผู้พูด และเวลา</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-field">สถานี: เลือกหลายรายการ</span><span class="help-mini-field">ผู้พูด</span><span class="help-mini-field">ตั้งแต่ → ถึง</span></div>
+                        <ul class="help-list"><li><b>สถานี</b> เลือกหลายสถานีได้ด้วย Ctrl/Command</li><li><b>ผู้พูด</b> พิมพ์ชื่อหรือเลือกจากคำแนะนำ</li><li><b>ตั้งแต่/ถึง</b> จำกัดวันและเวลา; เว้นว่างหมายถึงไม่จำกัด</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon is-amber" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 9v11"></path></svg></span><h3>4. ประเภทข้อมูล</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-badge">เสียงถอดข้อความ</span><span class="help-mini-badge">Alert</span><span class="help-mini-badge">แชท</span><span class="help-mini-badge">TTS</span><span class="help-mini-badge">PTT</span></div>
+                        <ul class="help-list"><li><b>Voice transcript</b> เสียงที่ AI ถอดเป็นข้อความ</li><li><b>Alert</b> รายการที่ตรงคำเฝ้าระวัง</li><li><b>Text chat</b> แชทใน Mumble, <b>TTS</b> ข้อความ AI พูด, <b>PTT</b> ไมค์เว็บ</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg></span><h3>5. ตัวกรองขั้นสูง</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-field">มีไฟล์เสียง</span><span class="help-mini-field">Keyword</span><span class="help-mini-field">Confidence ≥ 0.80</span></div>
+                        <ul class="help-list"><li><b>หลักฐานเสียง</b> เลือกทั้งหมด/มีเสียง/ไม่มีเสียง</li><li><b>Keyword</b> และ <b>Incident status</b> จำกัดเฉพาะรายการที่เกี่ยวข้อง</li><li><b>Confidence</b> ตัดผลถอดเสียงที่ความมั่นใจต่ำ</li><li><b>คำใกล้เคียง</b> รองรับคำสะกดคลาดเคลื่อน ตั้งแต่ 3 ตัวอักษร</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon is-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h9"></path><circle cx="3" cy="6" r=".5"></circle><circle cx="3" cy="12" r=".5"></circle><circle cx="3" cy="18" r=".5"></circle></svg></span><h3>6. อ่านผลลัพธ์</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-result"><strong>เจ้าหน้าที่-01</strong> · 14:32 · มีเสียง<br>“ขอกำลังเสริมบริเวณจุดตรวจ...”</span></div>
+                        <ul class="help-list"><li>แถบบนแสดงจำนวนผล เวลาใช้ค้นหา และเรียงล่าสุด/เก่าสุด</li><li>ป้ายใต้ข้อความบอกประเภท Keyword เสียง และ Incident</li><li>กด <b>โหลดผลลัพธ์ถัดไป</b> เพื่ออ่านต่อโดยไม่โหลดรายการเดิมซ้ำ</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon is-amber" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10h4l5-4v12l-5-4H4v-4Z"></path><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"></path></svg></span><h3>7. รายละเอียดและเสียง</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-button blue">▶ เล่นเสียง</span><span class="help-mini-field">บริบทก่อน–หลัง 10 ข้อความ</span></div>
+                        <ul class="help-list"><li>คลิกผลลัพธ์เพื่อเปิดแผงรายละเอียดด้านขวา</li><li>แสดงสถานี ห้อง ผู้พูด เวลา Confidence Keyword และ SHA-256</li><li>เครื่องเล่นเสียงจะแสดงเมื่อไฟล์ยังอยู่ และบริบทใช้ห้อง/สถานีเดียวกัน</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon is-red" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.8-2.8 8.2-7 10-4.2-1.8-7-5.2-7-10V6l7-3Z"></path><path d="m8.5 12 2.2 2.2 4.8-5"></path></svg></span><h3>8. จัดการหลักฐาน</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-button primary">Bookmark / Note</span><span class="help-mini-button blue">แก้ Transcript</span><span class="help-mini-button danger">เปิด Incident</span></div>
+                        <ul class="help-list"><li><b>Bookmark / Note</b> ใส่ Tags และหมายเหตุส่วนตัว</li><li><b>แก้ Transcript</b> สร้าง Revision ใหม่และเก็บต้นฉบับไว้</li><li><b>Incident</b> ระบุชื่อ ระดับความรุนแรง และหมายเหตุ</li><li>ทุกการทำรายการถูกบันทึก Audit log</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3h12l2 2v16H5V3Z"></path><path d="M8 3v6h8V3M8 17h8"></path></svg></span><h3>9. บันทึกชุดค้นหาและ Export</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-button primary">บันทึกชุดค้นหา</span><span class="help-mini-button blue">ส่งออก CSV</span></div>
+                        <ul class="help-list"><li>บันทึกตัวกรองปัจจุบันไว้เรียกใช้ซ้ำจากรายการด้านบน</li><li>ตัวเลือกแจ้งเตือนเป็นการเตรียมชุดค้นหาสำหรับระบบแจ้งเตือน</li><li>CSV ใช้ตัวกรองและสิทธิ์ห้องเดียวกับหน้าจอเสมอ</li></ul>
+                    </section>
+                    <section>
+                        <div class="help-section-heading"><span class="help-section-icon is-red" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4v6h6M20 20v-6h-6"></path><path d="M5.5 15a7 7 0 0 0 11.5 2M18.5 9A7 7 0 0 0 7 7"></path></svg></span><h3>10. ล้างตัวกรองและแก้ปัญหา</h3></div>
+                        <div class="help-mini-ui"><span class="help-mini-button">ล้างทั้งหมด</span><span class="help-mini-button primary">ค้นหาตามเงื่อนไข</span></div>
+                        <ul class="help-list"><li><b>ล้างทั้งหมด</b> คืนค่าตัวกรองและ URL แล้วค้นหาใหม่</li><li>ไม่พบข้อมูล: ตรวจสิทธิ์ห้อง ช่วงเวลา ประเภท และลองปิดคำใกล้เคียง</li><li>เปิดเสียงไม่ได้: ไฟล์อาจหมดอายุ retention หรือถูกย้าย</li><li>กด Esc เพื่อปิดรายละเอียดบนจอขนาดเล็ก</li></ul>
+                    </section>
+                </div>
+            </div>
+            <div class="dialog-actions"><button value="cancel" class="button primary">เข้าใจแล้ว</button></div>
+        </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="{{ url_for('static', filename='chat-search.js') }}" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = [...document.querySelectorAll('[data-search-view]')];
+            const setSearchView = (view, updateUrl = true) => {
+                const next = view === 'log' ? 'log' : 'chat';
+                document.body.dataset.searchView = next;
+                localStorage.setItem('roip-search-view', next);
+                buttons.forEach(button => {
+                    const active = button.dataset.searchView === next;
+                    button.classList.toggle('active', active);
+                    button.setAttribute('aria-pressed', String(active));
+                });
+                if (updateUrl) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('view', next);
+                    history.replaceState({}, '', url);
+                }
+            };
+            buttons.forEach(button => button.addEventListener('click', () => setSearchView(button.dataset.searchView)));
+            const queryView = new URLSearchParams(window.location.search).get('view');
+            setSearchView(queryView || localStorage.getItem('roip-search-view') || 'chat', false);
+        });
+    </script>
+</body>
+</html>

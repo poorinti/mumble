@@ -1,0 +1,15 @@
+bind = "0.0.0.0:5000"
+worker_class = "gthread"
+workers = 1
+threads = 8
+timeout = 60
+graceful_timeout = 30
+keepalive = 5
+preload_app = False
+accesslog = "-"
+errorlog = "-"
+capture_output = True
+limit_request_line = 4094
+limit_request_fields = 100
+limit_request_field_size = 8190
+forwarded_allow_ips = "*"

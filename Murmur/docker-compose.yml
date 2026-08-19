@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  command-center:
+    build: .
+    container_name: roip-web
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    restart: always
+    networks:
+      - roip-net
+
+  mumble-node1:
+    image: mumblevoip/mumble-server:latest
+    container_name: roip-mumble1
+    # ?????????????: ????????? mumble-server ???????????? ICE ???????????? IP (0.0.0.0)
+    command: 
+      - mumble-server
+      - -fg
+      - -ice
+      - "tcp -h 0.0.0.0 -p 6502"
+    environment:
+      - MUMBLE_ICE_ENDPOINT=tcp -h 0.0.0.0 -p 6502
+    ports:
+      - "64740:64738/tcp"
+      - "64740:64738/udp"
+    restart: always
+    networks:
+      - roip-net
+
+  mumble-node2:
+    image: mumblevoip/mumble-server:latest
+    container_name: roip-mumble2
+    command: 
+      - mumble-server
+      - -fg
+      - -ice
+      - "tcp -h 0.0.0.0 -p 6502"
+    environment:
+      - MUMBLE_ICE_ENDPOINT=tcp -h 0.0.0.0 -p 6502
+    ports:
+      - "64741:64738/tcp"
+      - "64741:64738/udp"
+    restart: always
+    networks:
+      - roip-net
+
+  mumble-node3:
+    image: mumblevoip/mumble-server:latest
+    container_name: roip-mumble3
+    command: 
+      - mumble-server
+      - -fg
+      - -ice
+      - "tcp -h 0.0.0.0 -p 6502"
+    environment:
+      - MUMBLE_ICE_ENDPOINT=tcp -h 0.0.0.0 -p 6502
+    ports:
+      - "64742:64738/tcp"
+      - "64742:64738/udp"
+    restart: always
+    networks:
+      - roip-net
+
+  mumble-node4:
+    image: mumblevoip/mumble-server:latest
+    container_name: roip-mumble4
+    command: 
+      - mumble-server
+      - -fg
+      - -ice
+      - "tcp -h 0.0.0.0 -p 6502"
+    environment:
+      - MUMBLE_ICE_ENDPOINT=tcp -h 0.0.0.0 -p 6502
+    ports:
+      - "64743:64738/tcp"
+      - "64743:64738/udp"
+    restart: always
+    networks:
+      - roip-net
+
+networks:
+  roip-net:
+    driver: bridge
