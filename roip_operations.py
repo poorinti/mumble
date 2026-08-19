@@ -77,6 +77,34 @@ class OperationalWorker:
             self._run_job(job)
             return False
 
+    def retention_days(self):
+        """Read the Admin-set value; .env remains the safe first-boot default."""
+        try:
+            with get_pool().connection() as conn:
+                row = conn.execute(
+                    "SELECT setting_value FROM system_settings WHERE setting_key='audio_retention_days'"
+                ).fetchone()
+            value = (row or {}).get("setting_value", {}).get("days") if row else None
+            return max(1, min(3650, int(value))) if value is not None else RETENTION_DAYS
+        except Exception:
+            return RETENTION_DAYS
+
+    def set_retention_days(self, days, actor):
+        days = max(1, min(3650, int(days)))
+        with get_pool().connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO system_settings (setting_key, setting_value, updated_by)
+                VALUES ('audio_retention_days', %s, %s)
+                ON CONFLICT (setting_key) DO UPDATE SET
+                    setting_value=EXCLUDED.setting_value, updated_by=EXCLUDED.updated_by, updated_at=NOW()
+                """,
+                (Jsonb({"days": days}), actor),
+            )
+            conn.commit()
+        self.cache_set_json("roip:settings:audio_retention", {"days": days}, ttl=86400)
+        return days
+
     def start(self):
         if self._started:
             return
@@ -177,7 +205,8 @@ class OperationalWorker:
             pass
 
     def cleanup_audio(self):
-        cutoff = time.time() - RETENTION_DAYS * 86400
+        retention_days = self.retention_days()
+        cutoff = time.time() - retention_days * 86400
         deleted_files, deleted_bytes = [], 0
         records_root = RECORDS_DIR.resolve()
         allowed_extensions = {".wav", ".mp3", ".ogg", ".flac", ".m4a", ".aac"}
@@ -206,11 +235,11 @@ class OperationalWorker:
                         INSERT INTO audit_events (actor_id, action, target_type, details)
                         VALUES ('retention-worker', 'audio.retention.cleanup', 'audio_asset', %s)
                         """,
-                        (Jsonb({"retention_days": RETENTION_DAYS, "files": len(deleted_files), "bytes": deleted_bytes}),),
+                        (Jsonb({"retention_days": retention_days, "files": len(deleted_files), "bytes": deleted_bytes}),),
                     )
                     conn.commit()
             result = {
-                "completed_at": _utc_iso(), "retention_days": RETENTION_DAYS,
+                "completed_at": _utc_iso(), "retention_days": retention_days,
                 "deleted_files": len(deleted_files), "deleted_bytes": deleted_bytes,
             }
             self.cache_set_json("roip:storage:last_cleanup", result, ttl=RETENTION_MINUTES * 120)
@@ -221,6 +250,7 @@ class OperationalWorker:
             return {"completed_at": _utc_iso(), "error": str(exc)[:300]}
 
     def health_snapshot(self):
+        retention_days = self.retention_days()
         disk = shutil.disk_usage(str(RECORDS_DIR))
         records_bytes, record_files = 0, 0
         try:
@@ -243,7 +273,7 @@ class OperationalWorker:
             "database": {"online": database_health(), "engine": "PostgreSQL"},
             "redis": {"online": self.redis_available(), "role": "cache + background queue"},
             "audio_storage": {
-                "files": record_files, "bytes": records_bytes, "retention_days": RETENTION_DAYS,
+                "files": record_files, "bytes": records_bytes, "retention_days": retention_days,
                 "last_cleanup": self.cache_get_json("roip:storage:last_cleanup", {}),
             },
             "stations": stations,

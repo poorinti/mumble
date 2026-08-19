@@ -171,6 +171,13 @@ CREATE TABLE IF NOT EXISTS station_health_events (
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS system_settings (
+    setting_key TEXT PRIMARY KEY,
+    setting_value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_chat_station_time
     ON chat_messages (station_id, occurred_at DESC, id DESC)
     WHERE deleted_at IS NULL;

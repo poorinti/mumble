@@ -576,7 +576,26 @@ def api_operations_run_retention():
         return denied
     queued = operations.enqueue('cleanup_audio')
     audit_event(session.get('username') or 'admin', 'audio.retention.request', 'audio_storage', None, request.remote_addr, {"queued": queued})
-    return jsonify({"status": "success", "queued": queued, "retention_days": int(os.getenv('AUDIO_RETENTION_DAYS', '30'))})
+    return jsonify({"status": "success", "queued": queued, "retention_days": operations.retention_days()})
+
+
+@app.route('/api/operations/audio-retention', methods=['GET', 'PATCH'])
+def api_operations_audio_retention():
+    denied = _require_operations_admin()
+    if denied:
+        return denied
+    if request.method == 'GET':
+        return jsonify({"retention_days": operations.retention_days()})
+    data = request.get_json(silent=True) or {}
+    try:
+        days = int(data.get('retention_days'))
+        if not 1 <= days <= 3650:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify({"status": "failed", "error": "กำหนดได้ตั้งแต่ 1 ถึง 3,650 วัน"}), 400
+    saved_days = operations.set_retention_days(days, session.get('username') or 'admin')
+    audit_event(session.get('username') or 'admin', 'audio.retention.update', 'audio_storage', None, request.remote_addr, {"retention_days": saved_days})
+    return jsonify({"status": "success", "retention_days": saved_days})
 
 @app.route('/api/ai/bot/start/<int:server_id>', methods=['POST'])
 def api_start_bot(server_id):
