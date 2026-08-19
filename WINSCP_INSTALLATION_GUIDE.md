@@ -92,6 +92,8 @@ openssl rand -hex 48
 
 ## 5. เปิดระบบ
 
+ถ้าเครื่องรองรับ Compose รุ่นใหม่ ใช้คำสั่ง `docker compose` ได้เลย หากขึ้นข้อความว่าไม่รู้จัก `compose` ให้ใช้ `docker-compose` แทน หรือทำตามขั้นตอนติดตั้ง Compose plugin ด้านล่าง
+
 ```bash
 docker compose up -d --build
 docker compose ps
@@ -105,6 +107,22 @@ curl http://127.0.0.1:5000/healthz
 ```
 
 เปิดหน้าเว็บที่ `http://SERVER_IP:5000`
+
+ติดตั้ง Compose plugin หากต้องการใช้คำสั่งแบบเว้นวรรค:
+
+```bash
+sudo apt update
+sudo apt install -y docker-compose-plugin
+docker compose version
+```
+
+หากระบบใช้แพ็กเกจรุ่นเก่า ให้ใช้รูปแบบมีขีด:
+
+```bash
+docker-compose up -d --build
+docker-compose ps
+curl http://127.0.0.1:5000/healthz
+```
 
 ## 6. เปิด Firewall
 
@@ -136,5 +154,4 @@ docker compose logs -f postgres
 ```
 
 เช็กลิสต์: Container เป็น `healthy`, `/healthz` ได้ `database: ok`, Login ได้, เพิ่มสถานีได้ และทดสอบ Backup แล้ว
-
 

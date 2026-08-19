@@ -103,6 +103,8 @@ MUMBLE_ICE_SECRET=secret-สำหรับ-ICE
 
 ## 5. สร้างและเปิดระบบ
 
+หาก Docker รุ่นเก่าไม่รู้จัก `docker compose` ให้ใช้ `docker-compose` แทน หรืออัปเดตด้วย `sudo apt install -y docker-compose-plugin`
+
 ```bash
 docker compose up -d --build
 docker compose ps
