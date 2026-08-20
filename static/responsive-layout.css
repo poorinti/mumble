@@ -104,9 +104,9 @@
 }
 
 @media (max-width: 760px) {
-    html, body { width: 100%; height: 100%; overscroll-behavior: none; }
-    body { min-width: 0; height: 100dvh !important; overflow: hidden !important; display: block !important; }
-    #dashboard { height: 100dvh; min-height: 0; padding: 0 8px 8px; overflow: hidden; }
+    html, body { width: 100%; min-height: 100%; overscroll-behavior-x: none; }
+    body { min-width: 0; height: auto !important; min-height: 100dvh; overflow-x: hidden !important; overflow-y: auto !important; display: block !important; }
+    #dashboard { height: auto; min-height: 100dvh; padding: 0 8px 16px; overflow: visible; }
     .app-header { flex: 0 0 auto; margin: 8px 0 !important; padding: 10px 11px !important; align-items: stretch !important; gap: 8px !important; }
     .app-brand { gap: 10px; min-width: 0; }
     .app-brand svg { width: 34px; height: 34px; flex: 0 0 auto; }
@@ -182,16 +182,16 @@
 
     .main-workspace {
         display: block !important;
-        flex: 1 1 auto;
-        min-height: 0;
+        flex: none;
+        min-height: auto;
         height: auto;
-        overflow: hidden;
+        overflow: visible;
         touch-action: pan-y;
     }
     .workspace-spatial-column,
     .workspace-log-column,
     .workspace-chat-column,
-    .workspace-history-column { width: 100%; height: 100%; min-height: 0; overflow: hidden; }
+    .workspace-history-column { width: 100%; height: auto; min-height: 0; overflow: visible; }
     body[data-command-view="spatial"] .workspace-spatial-column,
     body[data-command-view="chat"] .workspace-chat-column,
     body[data-command-view="log"] .workspace-log-column,
@@ -212,14 +212,14 @@
     .main-workspace.swipe-next > .workspace-history-column { animation: mobile-slide-next .22s ease-out; }
     .main-workspace.swipe-prev > :not([style*="display: none"]),
     .main-workspace.swipe-prev > .workspace-history-column { animation: mobile-slide-prev .22s ease-out; }
-    .workspace-spatial-column > .panel-content,
+    .workspace-spatial-column > .panel > .panel-content { overflow: visible; }
     .workspace-log-column > .panel,
     .workspace-chat-column > .panel { min-height: 0; }
     .workspace-log-column, .workspace-chat-column { gap: 8px; }
     .panel-header { min-height: 42px; padding: 9px 11px !important; font-size: 11px !important; }
     .panel-content { padding: 10px !important; }
-    #ai-terminal, #log-box { min-height: 0 !important; height: 100%; }
-    #history-frame { min-height: 0; height: 100%; }
+    #ai-terminal, #log-box { min-height: 360px !important; height: min(58dvh, 560px); }
+    #history-frame { min-height: 620px; height: 74dvh; }
 
     .user-table, .user-table tbody, .user-table tr, .user-table td { display: block; width: 100% !important; box-sizing: border-box; }
     .user-row { padding: 8px 9px; }
