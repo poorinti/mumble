@@ -226,7 +226,11 @@
     .search-layout { margin: 9px !important; }
     .filter-panel, .results-panel { padding: 13px !important; }
     .result-toolbar, .section-heading { gap: 8px; align-items: flex-start; flex-wrap: wrap; }
-    body.embedded .search-layout { display: block !important; height: auto; overflow: visible; }
+    /* The history search lives in a fixed-height iframe.  It must own vertical
+       scrolling on a phone; otherwise the long filter form traps the search box
+       and makes the page appear unusable. */
+    body.embedded { height: auto !important; min-height: 100%; overflow-y: auto !important; overflow-x: hidden !important; display: block !important; }
+    body.embedded .search-layout { display: block !important; height: auto !important; min-height: 100%; overflow: visible; }
     body.embedded .filter-panel,
     body.embedded .results-panel { overflow: visible; }
 }
