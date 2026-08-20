@@ -1073,7 +1073,7 @@
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='ios-theme.css', v='20260819-1') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='spatial-network.css', v='20260819-7') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260820-1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260820-3') }}">
 </head>
 
 <body>
@@ -1323,16 +1323,17 @@
                 <div class="node-chip" id="node-chip-wrap">◉ <span id="current-node-name">ยังไม่เชื่อมต่อ</span></div>
                 <div class="node-chip" id="user-session-chip" title="บัญชีผู้ใช้ปัจจุบัน">👤 <span id="current-username">-</span></div>
                 <button id="theme-toggle" onclick="toggleTheme()">◐ LIGHT</button>
-                <button class="btn btn-dark" id="admin-users-btn" style="display:none;"
-                    onclick="openAdminUsers()">👥 ผู้ใช้ระบบ</button>
+                <button class="btn btn-dark" id="admin-users-btn" style="display:none;" data-mobile-icon="👥"
+                    aria-label="ผู้ใช้ระบบ" title="ผู้ใช้ระบบ" onclick="openAdminUsers()">👥 ผู้ใช้ระบบ</button>
                 <button class="btn btn-dark" id="node-manage-btn"
+                    data-mobile-icon="⚙️" aria-label="จัดการสถานี" title="จัดการสถานี"
                     onclick="document.getElementById('node-modal').style.display='flex'; loadNodes();">⚙️
                     จัดการสถานี</button>
-                <button class="btn btn-dark admin-only-control" id="operations-btn" onclick="openOperationsDashboard()">🩺 Health</button>
-                <button class="btn btn-danger"
+                <button class="btn btn-dark admin-only-control" id="operations-btn" data-mobile-icon="🩺" aria-label="Health Dashboard" title="Health Dashboard" onclick="openOperationsDashboard()">🩺 Health</button>
+                <button class="btn btn-danger" id="logout-btn" data-mobile-icon="↪" aria-label="ออกจากระบบ" title="ออกจากระบบ"
                     onclick="sysConfirm('คุณต้องการออกจากระบบใช่หรือไม่?', logout, true)">ออกจากระบบ</button>
                 <button class="help-button" type="button" onclick="openHelp()" title="เปิดคู่มือและคำอธิบายสิทธิ์ผู้ใช้"
-                    aria-label="เปิดคู่มือและคำอธิบายสิทธิ์ผู้ใช้">?</button>
+                    aria-label="เปิดคู่มือและคำอธิบายสิทธิ์ผู้ใช้" data-mobile-icon="?">?</button>
             </div>
         </div>
 

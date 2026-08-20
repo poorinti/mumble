@@ -111,13 +111,55 @@
     .app-brand { gap: 10px; min-width: 0; }
     .app-brand svg { width: 34px; height: 34px; flex: 0 0 auto; }
     .app-title { font-size: 1.08em !important; letter-spacing: -.02em !important; }
-    .app-subtitle { font-size: .64em; letter-spacing: .08em; }
-    .header-right { width: 100%; align-items: center; flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
-    .header-right::-webkit-scrollbar { display: none; }
+    .app-subtitle { display: none; }
+    .header-right {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) repeat(5, 34px);
+        align-items: center;
+        gap: 5px !important;
+        overflow: visible;
+        padding: 0;
+    }
     .header-right .command-view-switch { display: none !important; }
-    .header-right .stats-bar { flex: 0 0 auto !important; flex-wrap: nowrap; margin: 0 !important; padding: 0 !important; border: 0 !important; }
-    .header-right .node-chip { flex: 0 0 auto; min-width: 0; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .header-right > .btn, .header-right > button { flex: 0 0 auto; min-height: 36px; white-space: nowrap; }
+    .header-right .stats-bar {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        display: flex;
+        flex: 0 0 auto !important;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        gap: 4px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+    .header-right .stat-chip { min-height: 26px; padding: 3px 7px !important; font-size: 10px !important; }
+    .header-right #node-chip-wrap {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        min-height: 34px;
+        padding: 4px 8px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .header-right #user-session-chip { display: none !important; }
+    .header-right > .btn,
+    .header-right > button { min-width: 34px; width: 34px; min-height: 34px; height: 34px; padding: 0 !important; white-space: nowrap; }
+    .header-right #admin-users-btn,
+    .header-right #node-manage-btn,
+    .header-right #operations-btn,
+    .header-right #logout-btn,
+    .header-right .help-button { grid-row: 2; font-size: 0 !important; }
+    .header-right #admin-users-btn::after,
+    .header-right #node-manage-btn::after,
+    .header-right #operations-btn::after,
+    .header-right #logout-btn::after,
+    .header-right .help-button::after { content: attr(data-mobile-icon); font-size: 16px; line-height: 1; }
 
     .mobile-view-pager {
         flex: 0 0 48px;
@@ -240,7 +282,8 @@
 
 @media (max-width: 420px) {
     .command-view-switch button { padding-inline: 10px !important; font-size: 11px; }
-    .header-right .node-chip { flex: 1 1 100%; max-width: 100%; }
+    .header-right { grid-template-columns: minmax(0, 1fr) repeat(5, 32px); gap: 4px !important; }
+    .header-right > .btn, .header-right > button { min-width: 32px; width: 32px; min-height: 32px; height: 32px; }
     .node-action-row { grid-template-columns: 1fr; }
     .node-list-table .user-cell { grid-template-columns: 70px minmax(0, 1fr); }
     .top-actions { grid-template-columns: 1fr; }
