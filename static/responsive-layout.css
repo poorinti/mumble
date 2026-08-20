@@ -162,20 +162,39 @@
     .header-right .help-button::after { content: attr(data-mobile-icon); font-size: 16px; line-height: 1; }
 
     .mobile-view-pager {
-        flex: 0 0 48px;
+        flex: 0 0 68px;
         display: grid;
-        grid-template-columns: 48px minmax(0, 1fr) 48px;
+        grid-template-columns: 86px minmax(0, 1fr) 86px;
         align-items: center;
         margin-bottom: 8px;
         border: 1px solid var(--line, var(--b1));
-        border-radius: 16px;
+        border-radius: 18px;
         background: var(--ios-glass, var(--bg-card));
         backdrop-filter: blur(22px);
         overflow: hidden;
     }
-    .mobile-view-pager button { height: 100%; border: 0; background: transparent; color: var(--accent); font-size: 30px; }
-    .mobile-view-pager > div { display: grid; justify-items: center; gap: 4px; }
-    #mobile-view-title { color: var(--txt-hi); font-size: 12px; }
+    .mobile-view-pager .mobile-page-step {
+        height: 100%;
+        min-width: 0;
+        border: 0;
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-family: var(--font-ui, inherit);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .02em;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-view-pager .mobile-page-step:active { background: color-mix(in srgb, var(--accent) 28%, transparent); transform: scale(.97); }
+    .mobile-view-pager .mobile-page-step b { font-size: 35px; line-height: .7; font-weight: 400; }
+    .mobile-view-pager > div { display: grid; justify-items: center; gap: 3px; padding: 0 5px; text-align: center; }
+    #mobile-view-title { color: var(--txt-hi); font-size: 14px; }
+    .mobile-view-pager small { color: var(--txt-muted, var(--txt-lo)); font-size: 9px; white-space: nowrap; }
     .mobile-view-dots { display: flex; gap: 5px; }
     .mobile-view-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--b2); transition: width .2s, background .2s; }
     .mobile-view-dots i.active { width: 17px; border-radius: 5px; background: var(--accent); }

@@ -1073,7 +1073,7 @@
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='ios-theme.css', v='20260819-1') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='spatial-network.css', v='20260819-7') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260820-4') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260820-5') }}">
 </head>
 
 <body>
@@ -1337,15 +1337,20 @@
             </div>
         </div>
 
-        <nav class="mobile-view-pager" aria-label="เปลี่ยนหน้าด้วยการปัดซ้ายขวา">
-            <button type="button" onclick="stepCommandView(-1)" aria-label="หน้าก่อนหน้า">‹</button>
+        <nav class="mobile-view-pager" aria-label="เปลี่ยนหน้า Dashboard ด้วยปุ่มหรือการปัดซ้ายขวา">
+            <button class="mobile-page-step" type="button" onclick="stepCommandView(-1)" aria-label="หน้าก่อนหน้า">
+                <b aria-hidden="true">‹</b><span>ก่อนหน้า</span>
+            </button>
             <div>
                 <strong id="mobile-view-title" aria-live="polite">แผนผัง</strong>
+                <small>ปัดซ้าย–ขวาเพื่อเปลี่ยนหน้า</small>
                 <span class="mobile-view-dots" aria-hidden="true">
                     <i data-mobile-view="spatial"></i><i data-mobile-view="chat"></i><i data-mobile-view="log"></i><i data-mobile-view="history"></i>
                 </span>
             </div>
-            <button type="button" onclick="stepCommandView(1)" aria-label="หน้าถัดไป">›</button>
+            <button class="mobile-page-step" type="button" onclick="stepCommandView(1)" aria-label="หน้าถัดไป">
+                <span>ถัดไป</span><b aria-hidden="true">›</b>
+            </button>
         </nav>
 
         <div class="main-workspace">
@@ -2095,7 +2100,7 @@
                 if (ignoreSwipe || !event.changedTouches.length) return;
                 const touch = event.changedTouches[0];
                 const dx = touch.clientX - startX, dy = touch.clientY - startY;
-                if (Math.abs(dx) < 58 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+                if (Math.abs(dx) < 36 || Math.abs(dx) < Math.abs(dy) * 1.08) return;
                 stepCommandView(dx < 0 ? 1 : -1);
             }, { passive: true });
         })();
