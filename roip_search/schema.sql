@@ -178,6 +178,16 @@ CREATE TABLE IF NOT EXISTS system_settings (
     updated_by TEXT
 );
 
+CREATE TABLE IF NOT EXISTS quiet_modes (
+    station_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    commander_name TEXT NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by TEXT,
+    PRIMARY KEY (station_id, channel_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_chat_station_time
     ON chat_messages (station_id, occurred_at DESC, id DESC)
     WHERE deleted_at IS NULL;

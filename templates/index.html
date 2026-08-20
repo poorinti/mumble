@@ -1073,7 +1073,7 @@
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='ios-theme.css', v='20260819-1') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='spatial-network.css', v='20260819-7') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260819-1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive-layout.css', v='20260820-1') }}">
 </head>
 
 <body>
@@ -1165,6 +1165,8 @@
                         </div>
                         <ul>
                             <li>แผนผังห้องจะแสดงผู้ใช้งานแบบสดและจำนวนผู้ใช้</li>
+                            <li>ใต้ชื่อผู้ใช้จะแสดงเวลาที่อยู่ในห้องปัจจุบัน และเริ่มนับใหม่เมื่อย้ายห้อง</li>
+                            <li>กดปุ่ม <b>Q</b> ที่หัวห้อง เลือกผู้บัญชาการ แล้วเปิด Quiet Mode เพื่อปิดไมค์ทุกคนรวมผู้เข้าใหม่ ยกเว้นผู้บัญชาการ</li>
                             <li>คลิกผู้ใช้เพื่อดูคำสั่ง เช่น ย้ายห้อง ปิดไมค์ ปิดหูฟัง เตะ หรือแบน</li>
                             <li>กด <b>⋮</b> ที่แผง “สถานะระบบ” เพื่อเปิดเมนูรีสตาร์ต ตั้งค่าขั้นสูง เปลี่ยนรหัสผ่าน หรือดู Log ของเซิร์ฟเวอร์</li>
                         </ul>
@@ -1251,6 +1253,7 @@
                         </div>
                         <ul>
                             <li><b>User</b> ใช้คำสั่งควบคุมได้ทั้งหมด เช่น ย้าย/เตะ/แบน/ปิดไมค์/ส่งข้อความ/ตั้งค่าห้อง แต่สร้างหรือลบห้องไม่ได้</li>
+                            <li>บนมือถือ ปัดซ้าย–ขวาบริเวณเนื้อหาเพื่อสลับ แผนผัง / แชท / Log / ประวัติ หรือกดลูกศรด้านล่าง</li>
                             <li><b>Admin</b> ทำได้เหมือน User และเพิ่ม/ลบห้อง จัดการสถานี และสร้างบัญชีผู้ใช้ได้</li>
                             <li>Admin เปิดเมนู <b>ผู้ใช้ระบบ</b> เพื่อสร้างบัญชี เปลี่ยนบทบาท รีเซ็ตรหัสผ่าน หรือปิดใช้งานบัญชี</li>
                             <li>บัญชีถูกเก็บใน PostgreSQL ด้วย password hash และระบบจะไม่อนุญาตให้ลบ/ลดสิทธิ์ Admin คนสุดท้าย</li>
@@ -1333,9 +1336,20 @@
             </div>
         </div>
 
+        <nav class="mobile-view-pager" aria-label="เปลี่ยนหน้าด้วยการปัดซ้ายขวา">
+            <button type="button" onclick="stepCommandView(-1)" aria-label="หน้าก่อนหน้า">‹</button>
+            <div>
+                <strong id="mobile-view-title" aria-live="polite">แผนผัง</strong>
+                <span class="mobile-view-dots" aria-hidden="true">
+                    <i data-mobile-view="spatial"></i><i data-mobile-view="chat"></i><i data-mobile-view="log"></i><i data-mobile-view="history"></i>
+                </span>
+            </div>
+            <button type="button" onclick="stepCommandView(1)" aria-label="หน้าถัดไป">›</button>
+        </nav>
+
         <div class="main-workspace">
 
-            <div class="panel panel-stretch">
+            <div class="panel panel-stretch workspace-spatial-column">
                 <div class="panel-header" style="display: flex; justify-content: space-between;">
                     <span>แผนผังห้องสื่อสารและบุคลากร</span>
                     <button class="btn btn-primary btn-sm admin-room-control" id="create-channel-btn"
@@ -1823,6 +1837,26 @@
         </div>
     </div>
 
+    <div id="quiet-mode-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="quiet-mode-title">
+        <div class="modal-content" style="width: 480px; padding: 0;">
+            <div class="panel-header">
+                <span id="quiet-mode-title">🎙️ Quiet Mode</span>
+                <button class="btn btn-danger btn-sm" type="button" onclick="closeQuietMode()">ปิด</button>
+            </div>
+            <div class="panel-content">
+                <input type="hidden" id="quiet-channel-id">
+                <div class="quiet-explainer">ระบบจะปิดไมค์ทุกคนในห้อง รวมถึงผู้ที่เข้ามาใหม่ และเปิดไมค์ไว้เฉพาะผู้บัญชาการที่เลือก</div>
+                <label class="form-label" for="quiet-commander-select">ผู้บัญชาการที่พูดได้</label>
+                <select id="quiet-commander-select" style="width:100%; margin:8px 0 12px;"></select>
+                <div id="quiet-current-status" class="quiet-current-status">ยังไม่ได้เปิด Quiet Mode</div>
+                <div class="quiet-actions">
+                    <button class="btn btn-dark" type="button" onclick="disableQuietMode()">ยกเลิก Quiet Mode</button>
+                    <button class="btn btn-primary" type="button" onclick="enableQuietMode()">เปิด / เปลี่ยนผู้บัญชาการ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="operations-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="operations-title">
         <div class="modal-content" style="width:min(980px, 94vw); max-height:88vh; padding:0; display:flex; flex-direction:column;">
             <div class="panel-header" style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
@@ -2005,20 +2039,33 @@
         let currentId = null;
         let draggedSession = null;
         let currentUser = null;
+        let latestStationUsers = [];
+        let latestQuietModes = [];
+        const COMMAND_VIEWS = ['spatial', 'chat', 'log', 'history'];
+        const COMMAND_VIEW_LABELS = { spatial: 'แผนผัง', chat: 'หน้าแชท', log: 'หน้า Log', history: 'ประวัติ' };
 
         function isAdmin() { return currentUser && currentUser.role === 'admin'; }
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
         }
-        function setCommandView(view, updateUrl = true) {
-            const allowed = ['spatial', 'chat', 'log', 'history'];
-            const next = allowed.includes(view) ? view : 'spatial';
+        function setCommandView(view, updateUrl = true, swipeDirection = 0) {
+            const next = COMMAND_VIEWS.includes(view) ? view : 'spatial';
             document.body.dataset.commandView = next;
             localStorage.setItem('roip-command-view', next);
             document.querySelectorAll('[data-command-view]').forEach(button => {
                 button.classList.toggle('active', button.dataset.commandView === next);
                 button.setAttribute('aria-pressed', String(button.dataset.commandView === next));
             });
+            const mobileTitle = document.getElementById('mobile-view-title');
+            if (mobileTitle) mobileTitle.textContent = COMMAND_VIEW_LABELS[next];
+            document.querySelectorAll('[data-mobile-view]').forEach(dot => dot.classList.toggle('active', dot.dataset.mobileView === next));
+            const workspace = document.querySelector('.main-workspace');
+            if (workspace && swipeDirection) {
+                workspace.classList.remove('swipe-next', 'swipe-prev');
+                void workspace.offsetWidth;
+                workspace.classList.add(swipeDirection > 0 ? 'swipe-next' : 'swipe-prev');
+                window.setTimeout(() => workspace.classList.remove('swipe-next', 'swipe-prev'), 240);
+            }
             if (next === 'history') {
                 const frame = document.getElementById('history-frame');
                 if (frame && !frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src);
@@ -2029,6 +2076,28 @@
                 history.replaceState({}, '', url);
             }
         }
+        function stepCommandView(direction) {
+            const current = COMMAND_VIEWS.indexOf(document.body.dataset.commandView || 'spatial');
+            const nextIndex = Math.max(0, Math.min(COMMAND_VIEWS.length - 1, current + direction));
+            if (nextIndex !== current) setCommandView(COMMAND_VIEWS[nextIndex], true, direction);
+        }
+        (function enableMobileViewSwipe() {
+            const workspace = document.querySelector('.main-workspace');
+            if (!workspace) return;
+            let startX = 0, startY = 0, ignoreSwipe = false;
+            workspace.addEventListener('touchstart', event => {
+                const touch = event.touches[0];
+                startX = touch.clientX; startY = touch.clientY;
+                ignoreSwipe = Boolean(event.target.closest('input, textarea, select, button, a, audio, iframe'));
+            }, { passive: true });
+            workspace.addEventListener('touchend', event => {
+                if (ignoreSwipe || !event.changedTouches.length) return;
+                const touch = event.changedTouches[0];
+                const dx = touch.clientX - startX, dy = touch.clientY - startY;
+                if (Math.abs(dx) < 58 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+                stepCommandView(dx < 0 ? 1 : -1);
+            }, { passive: true });
+        })();
         function reloadHistoryView() {
             const frame = document.getElementById('history-frame');
             if (!frame) return;
@@ -2570,6 +2639,8 @@ function deleteServer(id) {
                 const area = document.getElementById('room-display-area'); const parentSelect = document.getElementById('parent-ch-select'); const nLight = document.getElementById('node-light'); const nText = document.getElementById('node-text');
                 if (data.status.error) { area.innerHTML = `<div style="color:var(--accent-red); text-align:center; padding: 20px;">ข้อผิดพลาด: ${data.status.error}</div>`; nLight.className = "status-dot dot-red"; nLight.style.boxShadow = "none"; nText.innerText = "OFFLINE"; nText.style.color = "var(--accent-red)"; return; }
                 area.innerHTML = ''; const users = data.status.users || []; const channels = data.status.channels || [];
+                latestStationUsers = users;
+                latestQuietModes = data.quiet_modes || [];
                 renderSpatialTopology(channels, users);
                 document.getElementById('stats-bar').style.display = 'flex'; document.getElementById('stat-servers').parentElement.style.display = 'none'; document.getElementById('stat-users').textContent = users.length; document.getElementById('stat-channels').textContent = channels.length; document.getElementById('stat-bots').textContent = users.filter(u => u.name.startsWith('[AI-')).length;
                 document.getElementById('ai-count-badge').innerText = users.filter(u => u.name.startsWith('[AI-R')).length + ' ACTIVE';
@@ -2598,6 +2669,24 @@ function deleteServer(id) {
                     const safeChNameJS = ch.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                     const safeChNameHTML = ch.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                     area.innerHTML += `<div class="room-card" id="room-card-${ch.id}"><div class="room-header" ondragover="event.preventDefault(); this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="dropUser(event, ${ch.id}, '${safeChNameJS}')"><div><span class="room-name"># ${safeChNameHTML}</span><span class="user-count">(${chUsers.length} นาย)</span></div><div style="display:flex; gap:4px;"><button class="btn btn-warning btn-icon" onclick="sysConfirm('ต้องการปิดไมค์ผู้ใช้ทุกคนในห้อง ${safeChNameJS} ใช่หรือไม่?', () => muteAllInRoom(${ch.id}, '${safeChNameJS}'))" title="ปิดไมค์ทั้งห้อง">🔇</button> <button class="btn btn-blue btn-icon" onclick="openRenameChannel(${ch.id}, '${safeChNameJS}')" title="เปลี่ยนชื่อห้อง">✏️</button> <button class="btn btn-dark btn-icon" onclick="openChannelSettings(${ch.id}, '${safeChNameJS}')" title="ตั้งค่าห้อง">⚙️</button> <button class="btn btn-danger btn-icon admin-only-control" onclick="sysConfirm('ยืนยันการลบห้อง ${safeChNameJS}?', () => deleteChannel(${ch.id}, '${safeChNameJS}'), true)" title="ลบห้อง">🗑️</button></div></div><div><table class="user-table">${chUsers.map(u => { const safeNameJS = u.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); const safeNameHTML = u.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); return `<tr class="user-row" draggable="true" ondragstart="draggedSession={id: ${u.session}, name: '${safeNameJS}'}"><td class="user-cell" style="width: 40%;"><span class="status-dot ${u.mute ? 'dot-red' : ''}" style="flex-shrink:0;"></span><strong style="color: ${u.mute ? 'var(--text-muted)' : 'var(--txt-hi)'}">${safeNameHTML}</strong></td><td class="user-cell" style="width: 20%;"><span class="ping-badge ${u.ping < 80 ? 'ping-good' : u.ping < 150 ? 'ping-warn' : 'ping-bad'}">${u.ping}ms</span></td><td class="user-cell" style="text-align: right; white-space: nowrap;">${u.name.startsWith('[AI-') ? `<button class="btn btn-danger btn-icon" style="background:#8b0000; border:1px solid #ff0000;" onclick="killBot('${safeNameJS}')" title="ถอนกำลังบอทตัวนี้">🗑️</button>` : `<button class="btn ${u.mute ? 'btn-blue' : 'btn-warning'} btn-icon" onclick="toggleMute(${u.session}, '${safeNameJS}', ${!u.mute})" title="${u.mute ? 'เปิดไมค์' : 'ปิดไมค์'}">${u.mute ? '🔊' : '🔇'}</button> <button class="btn btn-purple btn-icon" onclick="toggleDeaf(${u.session}, '${safeNameJS}', ${!u.deaf})" title="${u.deaf ? 'เปิดหูฟัง' : 'ปิดหูฟัง'}">${u.deaf ? '👂' : '🔕'}</button> <button class="btn btn-blue btn-icon" onclick="openDM(${u.session}, '${safeNameJS}')" title="ส่งข้อความ">💬</button> <button class="btn btn-dark btn-icon" onclick="openRenameUser(${u.session}, '${safeNameJS}')" title="เปลี่ยนชื่อ">✏️</button> <button class="btn btn-danger btn-icon" onclick="sysConfirm('ต้องการเตะ ${safeNameJS} ออกจากเซิร์ฟเวอร์?', () => kick(${u.session}, '${safeNameJS}'), true)" title="เตะออก">👢</button> <button class="btn btn-danger btn-icon" style="background:#8b0000; border:1px solid #ff0000;" onclick="sysConfirm('คำเตือน: ยืนยันการ BAN IP ของ ${safeNameJS} ถาวร?', () => banUser(${u.session}, '${safeNameJS}'), true)" title="แบน IP">🚫</button>`}</td></tr>`}).join('')}</table></div></div>`;
+                });
+                channels.forEach(ch => {
+                    const card = document.getElementById(`room-card-${ch.id}`);
+                    if (!card) return;
+                    const mode = latestQuietModes.find(item => Number(item.channel_id) === Number(ch.id));
+                    const controls = card.querySelector('.room-header > div:last-child');
+                    if (controls) controls.insertAdjacentHTML('afterbegin', `<button class="btn ${mode ? 'btn-primary' : 'btn-dark'} btn-icon quiet-mode-button" onclick="openQuietMode(${Number(ch.id)}, '${String(ch.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}')" title="Quiet Mode: ทุกคนเงียบยกเว้นผู้บัญชาการ">Q</button>`);
+                    if (mode) {
+                        const heading = card.querySelector('.room-header > div:first-child');
+                        heading?.insertAdjacentHTML('beforeend', `<span class="quiet-mode-badge">QUIET · ${escapeHtml(mode.commander_name)}</span>`);
+                    }
+                    const roomUsers = users.filter(user => Number(user.channel_id) === Number(ch.id));
+                    card.querySelectorAll('.user-row').forEach((row, index) => {
+                        const user = roomUsers[index];
+                        const strong = row.querySelector('.user-cell strong');
+                        if (!user || !strong) return;
+                        strong.insertAdjacentHTML('afterend', `<small class="room-duration" title="เริ่มอยู่ห้องนี้ ${escapeHtml(user.room_since || '')}">อยู่ห้องนี้ ${formatRoomDuration(user.room_duration_seconds)}</small>`);
+                    });
                 });
                 applyPermissions(currentUser);
                 nLight.className = "status-dot"; nLight.style.boxShadow = "0 0 5px var(--accent-green)"; nText.innerText = "ONLINE"; nText.style.color = "var(--accent-green)";
@@ -2636,6 +2725,47 @@ function deleteServer(id) {
         function deleteChannel(id, name) { if (!isAdmin()) return sysAlert("การลบห้องต้องใช้สิทธิ์ Admin"); fetch(`/api/server/${currentId}/channel/${id}`, { method: 'DELETE' }).then(r => r.json()).then(d => { if (d.status !== 'success') return sysAlert(d.error || 'ลบห้องไม่สำเร็จ'); addLog(`🗑️ สั่งลบห้องสื่อสาร: [${name}]`); refreshData(); }); }
         function toggleMute(s, name, status) { fetch(`/api/server/${currentId}/mute/${s}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mute: status }) }).then(() => { addLog(`🎤 สั่ง ${status ? 'ปิดไมค์' : 'เปิดไมค์'} ของ: [${name}]`); refreshData(); }); }
         function muteAllInRoom(chId, chName) { fetch(`/api/server/${currentId}/mute_all/${chId}`, { method: 'POST' }).then(() => { addLog(`🔇 สั่งปิดไมค์ทุกคนในห้อง: [${chName}]`); refreshData(); }); }
+        function formatRoomDuration(value) {
+            const seconds = Math.max(0, Number(value) || 0);
+            if (seconds < 60) return `${Math.floor(seconds)} วินาที`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} นาที`;
+            const hours = Math.floor(seconds / 3600), minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours} ชม.${minutes ? ` ${minutes} นาที` : ''}`;
+        }
+        function openQuietMode(channelId, channelName) {
+            if (!currentId) return sysAlert('โปรดเชื่อมต่อสถานีก่อน');
+            const users = latestStationUsers.filter(user => Number(user.channel_id) === Number(channelId) && !String(user.name).startsWith('[AI-'));
+            const mode = latestQuietModes.find(item => Number(item.channel_id) === Number(channelId));
+            const select = document.getElementById('quiet-commander-select');
+            document.getElementById('quiet-channel-id').value = channelId;
+            document.getElementById('quiet-mode-title').textContent = `🎙️ Quiet Mode · # ${channelName}`;
+            select.innerHTML = users.length
+                ? users.map(user => `<option value="${Number(user.session)}" ${mode && mode.commander_name === user.name ? 'selected' : ''}>${escapeHtml(user.name)}</option>`).join('')
+                : '<option value="">ไม่มีผู้ใช้ในห้องนี้</option>';
+            document.getElementById('quiet-current-status').innerHTML = mode
+                ? `กำลังทำงาน · ผู้บัญชาการ <strong>${escapeHtml(mode.commander_name)}</strong>`
+                : 'ยังไม่ได้เปิด Quiet Mode';
+            document.getElementById('quiet-mode-modal').style.display = 'flex';
+        }
+        function closeQuietMode() { document.getElementById('quiet-mode-modal').style.display = 'none'; }
+        async function setQuietMode(enabled) {
+            const channelId = Number(document.getElementById('quiet-channel-id').value);
+            const commanderSession = document.getElementById('quiet-commander-select').value;
+            if (enabled && !commanderSession) return sysAlert('ห้องนี้ยังไม่มีผู้ใช้สำหรับเลือกเป็นผู้บัญชาการ');
+            try {
+                const response = await fetch(`/api/server/${currentId}/channel/${channelId}/quiet`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled, commander_session: commanderSession })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || data.status !== 'success') throw new Error(data.error || 'ดำเนินการไม่สำเร็จ');
+                closeQuietMode();
+                addLog(enabled ? `🎙️ เปิด Quiet Mode ผู้บัญชาการ [${data.commander_name}]` : '🔊 ยกเลิก Quiet Mode และเปิดไมค์ทุกคนในห้อง');
+                refreshData();
+            } catch (error) { sysAlert(error.message); }
+        }
+        function enableQuietMode() { setQuietMode(true); }
+        function disableQuietMode() { setQuietMode(false); }
         function kick(s, name) { fetch(`/api/server/${currentId}/kick/${s}`, { method: 'POST' }).then(() => { addLog(`👢 สั่งเตะผู้ใช้: [${name}]`); refreshData(); }); }
         function banUser(s, name) { fetch(`/api/server/${currentId}/ban/${s}`, { method: 'POST' }).then(() => { addLog(`🚫 สั่งแบน IP ผู้ใช้: [${name}] ถาวร!`); refreshData(); }); }
         function restartServer() { fetch(`/api/server/${currentId}/restart`, { method: 'POST' }).then(() => { addLog("⚠️ สั่งรีสตาร์ทเซิร์ฟเวอร์..."); setTimeout(refreshData, 3000); }); }

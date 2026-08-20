@@ -143,7 +143,9 @@ def healthz():
         return jsonify({"status": "ok", "database": "ok"})
     return jsonify({"status": "degraded", "database": "unavailable"}), 503
 
-server_user_snapshots = {}  
+server_user_snapshots = {}
+room_presence_state = {}
+room_presence_lock = threading.Lock()
 
 def monitor_users_silent():
     global server_user_snapshots
@@ -158,6 +160,8 @@ def monitor_users_silent():
                     if not status['online']:
                         server_user_snapshots.pop(sid, None)
                         continue
+                    _attach_room_presence(s['id'], status)
+                    _apply_quiet_modes(s, status)
                     current = {u['name'] for u in status.get('users', [])}
                     prev = server_user_snapshots.get(sid, None)
                     if prev is not None:
@@ -222,6 +226,88 @@ def _log_db(server_id, message):
     conn.commit(); conn.close()
 
 
+def _attach_room_presence(server_id, status):
+    """Add a stable room-entry timestamp and elapsed seconds to live Mumble users."""
+    now = time.time()
+    users = status.get('users') or []
+    active_keys = set()
+    with room_presence_lock:
+        for user in users:
+            key = (int(server_id), int(user.get('session', -1)))
+            active_keys.add(key)
+            channel_id = int(user.get('channel_id', 0))
+            presence = room_presence_state.get(key)
+            if not presence or presence['channel_id'] != channel_id:
+                presence = {'channel_id': channel_id, 'since': now}
+                room_presence_state[key] = presence
+            user['room_since'] = datetime.fromtimestamp(presence['since'], timezone.utc).isoformat()
+            user['room_duration_seconds'] = max(0, int(now - presence['since']))
+        for key in [item for item in room_presence_state if item[0] == int(server_id) and item not in active_keys]:
+            room_presence_state.pop(key, None)
+    return status
+
+
+def _quiet_modes_for_station(server_id):
+    try:
+        with get_pool().connection() as conn:
+            rows = conn.execute(
+                """SELECT channel_id, commander_name, updated_at, updated_by
+                   FROM quiet_modes WHERE station_id = %s AND enabled = TRUE
+                   ORDER BY channel_id""",
+                (int(server_id),),
+            ).fetchall()
+        return [dict(row) for row in rows]
+    except Exception as exc:
+        print(f"[quiet-mode] Unable to read station {server_id}: {exc}")
+        return []
+
+
+def _save_quiet_mode(server_id, channel_id, commander_name):
+    actor = str(session.get('username') or 'system')
+    with get_pool().connection() as conn:
+        conn.execute(
+            """INSERT INTO quiet_modes
+                   (station_id, channel_id, commander_name, enabled, updated_at, updated_by)
+               VALUES (%s, %s, %s, TRUE, NOW(), %s)
+               ON CONFLICT (station_id, channel_id) DO UPDATE SET
+                   commander_name = EXCLUDED.commander_name,
+                   enabled = TRUE,
+                   updated_at = NOW(),
+                   updated_by = EXCLUDED.updated_by""",
+            (int(server_id), int(channel_id), commander_name, actor),
+        )
+        conn.commit()
+
+
+def _delete_quiet_mode(server_id, channel_id):
+    with get_pool().connection() as conn:
+        conn.execute(
+            "DELETE FROM quiet_modes WHERE station_id = %s AND channel_id = %s",
+            (int(server_id), int(channel_id)),
+        )
+        conn.commit()
+
+
+def _apply_quiet_modes(server, status, modes=None):
+    """Enforce quiet rooms, including users who joined after the mode was enabled."""
+    if not status.get('online') or status.get('error'):
+        return 0
+    active = modes if modes is not None else _quiet_modes_for_station(server['id'])
+    by_channel = {int(mode['channel_id']): str(mode['commander_name']) for mode in active}
+    changed = 0
+    for user in status.get('users') or []:
+        commander = by_channel.get(int(user.get('channel_id', 0)))
+        if commander is None:
+            continue
+        should_mute = str(user.get('name')) != commander
+        if bool(user.get('mute')) == should_mute:
+            continue
+        if set_user_mute(server['ip'], int(user['session']), should_mute, _ice_port(server), _ice_secret(server)):
+            user['mute'] = should_mute
+            changed += 1
+    return changed
+
+
 _AUDIT_ACTIONS = {
     'api_kick': 'server.user.kick',
     'api_ban': 'server.user.ban',
@@ -240,6 +326,7 @@ _AUDIT_ACTIONS = {
     'api_unregister_user': 'server.account.delete',
     'api_broadcast': 'server.message.broadcast',
     'api_tts_broadcast': 'server.tts.broadcast',
+    'api_quiet_mode': 'server.channel.quiet_mode',
 }
 
 
@@ -797,7 +884,9 @@ def api_delete_server(id):
 def api_get_server_detail(server_id):
     target = next((s for s in load_servers() if s['id'] == server_id), None)
     if not target: return jsonify({"error": "Not found"}), 404
-    return jsonify({"server": target, "status": get_server_status(target['ip'], _ice_port(target), _ice_secret(target))})
+    status = get_server_status(target['ip'], _ice_port(target), _ice_secret(target))
+    _attach_room_presence(server_id, status)
+    return jsonify({"server": target, "status": status, "quiet_modes": _quiet_modes_for_station(server_id)})
 
 @app.route('/api/server/<int:server_id>/autobots', methods=['POST'])
 def api_set_autobots(server_id):
@@ -1077,6 +1166,46 @@ def api_mute_all(server_id, channel_id):
     target = next((s for s in load_servers() if s['id'] == server_id), None)
     if target and mute_all_in_channel(target['ip'], channel_id, _ice_port(target), _ice_secret(target)): return jsonify({"status": "success"})
     return jsonify({"status": "failed"}), 500
+
+@app.route('/api/server/<int:server_id>/channel/<int:channel_id>/quiet', methods=['GET', 'POST'])
+def api_quiet_mode(server_id, channel_id):
+    target = next((s for s in load_servers() if s['id'] == server_id), None)
+    if not target:
+        return jsonify({"status": "failed", "error": "ไม่พบสถานี"}), 404
+    if request.method == 'GET':
+        mode = next((item for item in _quiet_modes_for_station(server_id)
+                     if int(item['channel_id']) == channel_id), None)
+        return jsonify({"status": "success", "quiet_mode": mode})
+
+    data = request.get_json(silent=True) or {}
+    status = get_server_status(target['ip'], _ice_port(target), _ice_secret(target))
+    if not status.get('online') or status.get('error'):
+        return jsonify({"status": "failed", "error": status.get('error') or "สถานี Offline"}), 503
+
+    if not bool(data.get('enabled', True)):
+        _delete_quiet_mode(server_id, channel_id)
+        changed = 0
+        for user in status.get('users') or []:
+            if int(user.get('channel_id', 0)) == channel_id and bool(user.get('mute')):
+                if set_user_mute(target['ip'], int(user['session']), False, _ice_port(target), _ice_secret(target)):
+                    changed += 1
+        _log_db(server_id, f"🔊 ปิด Quiet Mode ห้อง #{channel_id} และเปิดไมค์ {changed} คน")
+        return jsonify({"status": "success", "enabled": False, "unmuted": changed})
+
+    commander_session = data.get('commander_session')
+    commander = next((user for user in status.get('users') or []
+                      if int(user.get('session', -1)) == int(commander_session or -1)
+                      and int(user.get('channel_id', 0)) == channel_id), None)
+    if not commander:
+        return jsonify({"status": "failed", "error": "กรุณาเลือกผู้บัญชาการที่อยู่ในห้องนี้"}), 400
+    commander_name = str(commander.get('name') or '').strip()
+    if not commander_name:
+        return jsonify({"status": "failed", "error": "ชื่อผู้บัญชาการไม่ถูกต้อง"}), 400
+    _save_quiet_mode(server_id, channel_id, commander_name)
+    mode = {'channel_id': channel_id, 'commander_name': commander_name}
+    changed = _apply_quiet_modes(target, status, [mode])
+    _log_db(server_id, f"🎙️ เปิด Quiet Mode ห้อง #{channel_id} ผู้บัญชาการ [{commander_name}] ปรับไมค์ {changed} คน")
+    return jsonify({"status": "success", "enabled": True, "commander_name": commander_name, "changed": changed})
 
 @app.route('/api/server/<int:server_id>/restart', methods=['POST'])
 def api_restart(server_id):
